@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Interactive - Apprendre Python par la Pratique</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        pyblue: '#306998',
+                        pyyellow: '#FFE873',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CodeMirror for Python syntax highlighting & editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/neo.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+    
+    <!-- Pyodide Load CDN -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .CodeMirror {
+            height: 100% !important;
+            min-height: 280px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            border-radius: 0.5rem;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+            <button id="sidebar-toggle" class="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    <i class="fa-brands fa-python"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent">PyAcademy</span>
+                <span class="text-xs bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 font-semibold px-2 py-0.5 rounded-full border border-sky-300 dark:border-sky-800">Pro</span>
+            </div>
+        </div>
+
+        <!-- Global Progress Bar in Header -->
+        <div class="hidden md:flex items-center gap-4 flex-1 max-w-md mx-8">
+            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Progression globale</span>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden shadow-inner">
+                <div id="header-progress-bar" class="bg-gradient-to-r from-sky-500 to-emerald-500 h-full w-0 transition-all duration-500"></div>
+            </div>
+            <span id="header-progress-text" class="text-xs font-bold text-sky-600 dark:text-sky-400 whitespace-nowrap">0%</span>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Pyodide Engine Status Indicator -->
+            <div id="pyodide-status" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span id="pyodide-status-text">Initialisation Python...</span>
+            </div>
+
+            <!-- Dark / Light Mode Toggle Button -->
+            <button id="theme-toggle" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-20 w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out custom-scrollbar overflow-y-auto">
+            
+            <!-- Main View Tabs Nav -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-800/50">
+                <button id="tab-btn-practice" class="view-tab-btn active text-xs font-semibold py-2 px-1 rounded-lg flex flex-col items-center gap-1 transition-all bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm">
+                    <i class="fa-solid fa-code text-base"></i> Exercices
+                </button>
+                <button id="tab-btn-dashboard" class="view-tab-btn text-xs font-semibold py-2 px-1 rounded-lg flex flex-col items-center gap-1 transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-chart-pie text-base"></i> Dashboard
+                </button>
+                <button id="tab-btn-errors" class="view-tab-btn text-xs font-semibold py-2 px-1 rounded-lg flex flex-col items-center gap-1 transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-bug text-base"></i> Révisions
+                </button>
+            </div>
+
+            <!-- Levels & Modules Accordion -->
+            <div id="sidebar-levels-container" class="p-3 space-y-2 flex-1">
+                <!-- Dynamically populated levels -->
+            </div>
+
+            <!-- Footer Stats Quick Badge -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                    <span>Progrès Niveaux</span>
+                    <span id="sidebar-completed-count">0 / 60</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div id="sidebar-progress-bar" class="bg-sky-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Overlay backdrop for Mobile Sidebar -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 z-10 hidden lg:hidden"></div>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-100 dark:bg-slate-900 overflow-y-auto custom-scrollbar p-3 lg:p-5">
+
+            <!-- SECTION 1: PRACTICE / EXERCISES VIEW -->
+            <div id="view-practice" class="view-section space-y-4 max-w-7xl mx-auto w-full flex flex-col h-full">
+                
+                <!-- Exercise Header Bar -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span id="ex-level-badge" class="px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+                            Niveau 1
+                        </span>
+                        <span id="ex-type-badge" class="px-2.5 py-1 text-xs font-bold tracking-wider rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                            <i class="fa-solid fa-code mr-1"></i> Programmation
+                        </span>
+                        <h2 id="ex-title" class="font-bold text-lg text-slate-800 dark:text-slate-100">
+                            Chargement de l'exercice...
+                        </h2>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btn-prev-ex" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 transition">
+                            <i class="fa-solid fa-chevron-left mr-1"></i> Précédent
+                        </button>
+                        <span id="ex-nav-tracker" class="text-xs font-medium text-slate-500 dark:text-slate-400">1 / 10</span>
+                        <button id="btn-next-ex" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-40 transition shadow-sm">
+                            Suivant <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Grid: Instruction Left | Code & Console Right -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+                    
+                    <!-- LEFT COLUMN: Instruction, Inputs/Outputs, Hints -->
+                    <div class="lg:col-span-5 flex flex-col gap-4">
+                        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 flex-1 flex flex-col overflow-y-auto custom-scrollbar">
+                            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Consigne & Objectif</h3>
+                            <div id="ex-instructions" class="text-slate-700 dark:text-slate-200 text-sm space-y-3 leading-relaxed mb-4">
+                                <!-- Instructions text -->
+                            </div>
+
+                            <!-- Inputs / Expected Example Box -->
+                            <div id="ex-examples-box" class="mt-auto bg-slate-50 dark:bg-slate-900/60 rounded-lg p-3.5 border border-slate-200 dark:border-slate-700/80 text-xs space-y-2">
+                                <span class="font-bold text-slate-600 dark:text-slate-300 block mb-1">Exemple attendu :</span>
+                                <div id="ex-examples-content" class="code-font text-slate-600 dark:text-slate-300 whitespace-pre-wrap"></div>
+                            </div>
+                        </div>
+
+                        <!-- Hints Accordion -->
+                        <div class="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Aide Pédagogique</span>
+                                <span id="hint-counter" class="text-xs text-amber-600 dark:text-amber-400 font-medium">Indices (0/2)</span>
+                            </div>
+                            <div class="mt-3 flex gap-2">
+                                <button id="btn-show-hint" class="flex-1 py-2 px-3 text-xs font-semibold bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded-lg transition">
+                                    <i class="fa-solid fa-lightbulb mr-1.5 text-amber-500"></i> Obtenir un indice
+                                </button>
+                                <button id="btn-show-solution" class="py-2 px-3 text-xs font-semibold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition">
+                                    <i class="fa-solid fa-eye mr-1"></i> Voir correction
+                                </button>
+                            </div>
+                            <div id="hint-display-box" class="mt-3 hidden p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Code Editor & Execution Console -->
+                    <div class="lg:col-span-7 flex flex-col gap-4">
+                        
+                        <!-- Python Code Editor Block -->
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden">
+                            <div class="bg-slate-100 dark:bg-slate-800/80 px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-brands fa-python text-sky-500"></i>
+                                    <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">editeur.py</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="btn-reset-code" title="Réinitialiser le code" class="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 px-2 py-1 rounded">
+                                        <i class="fa-solid fa-rotate-left mr-1"></i> RàZ
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Code Editor Container -->
+                            <div class="p-1 bg-slate-900 min-h-[260px] flex-1">
+                                <textarea id="code-editor"></textarea>
+                            </div>
+
+                            <!-- Actions Toolbar -->
+                            <div class="p-3 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2">
+                                <button id="btn-run-code" class="px-4 py-2 text-xs font-bold bg-slate-700 hover:bg-slate-800 text-white rounded-lg transition flex items-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-play text-emerald-400"></i> Exécuter mon code
+                                </button>
+                                <button id="btn-verify-code" class="px-5 py-2 text-xs font-bold bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-lg transition flex items-center gap-2 shadow-md">
+                                    <i class="fa-solid fa-circle-check"></i> Vérifier ma réponse
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Console & Test Feedback Box -->
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col flex-1 min-h-[220px]">
+                            <!-- Console Header -->
+                            <div class="bg-slate-100 dark:bg-slate-800/80 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-terminal text-slate-400"></i> Terminal & Sortie
+                                </span>
+                                <button id="btn-clear-console" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                    Effacer
+                                </button>
+                            </div>
+
+                            <!-- Terminal stdout Area -->
+                            <div id="console-output" class="p-4 code-font text-xs text-slate-200 bg-slate-950 flex-1 overflow-y-auto custom-scrollbar rounded-b-xl space-y-1">
+                                <span class="text-slate-500 italic">// La sortie de votre programme s'affichera ici...</span>
+                            </div>
+
+                            <!-- Feedback Diagnostic Card (Hidden by default) -->
+                            <div id="feedback-card" class="hidden p-4 border-t border-slate-200 dark:border-slate-700">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: DASHBOARD VIEW -->
+            <div id="view-dashboard" class="view-section hidden space-y-6 max-w-7xl mx-auto w-full">
+                
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
+                        Tableau de Bord & Statistiques
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Suivez votre progression globale et vos performances d'apprentissage Python.</p>
+
+                    <!-- Stats Cards Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <div class="text-sky-500 text-2xl mb-2"><i class="fa-solid fa-circle-check"></i></div>
+                            <div id="dash-stat-completed" class="text-2xl font-extrabold text-slate-800 dark:text-slate-100">0</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Exercices Réussis</div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <div class="text-indigo-500 text-2xl mb-2"><i class="fa-solid fa-bullseye"></i></div>
+                            <div id="dash-stat-accuracy" class="text-2xl font-extrabold text-slate-800 dark:text-slate-100">0%</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Taux de Réussite</div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <div class="text-amber-500 text-2xl mb-2"><i class="fa-solid fa-fire"></i></div>
+                            <div id="dash-stat-attempts" class="text-2xl font-extrabold text-slate-800 dark:text-slate-100">0</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Tentatives Totales</div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <div class="text-emerald-500 text-2xl mb-2"><i class="fa-solid fa-trophy"></i></div>
+                            <div id="dash-stat-level" class="text-2xl font-extrabold text-slate-800 dark:text-slate-100">Niveau 1</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Niveau Actuel</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Breakdown by Level -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <h3 class="text-md font-bold text-slate-800 dark:text-slate-100 mb-4">Progression par Chapitre</h3>
+                    <div id="dash-levels-breakdown" class="space-y-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 3: REVISION & ERROR HISTORY VIEW -->
+            <div id="view-errors" class="view-section hidden space-y-6 max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Centre de Révision Adaptatif</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">L'application analyse vos erreurs récurrentes pour vous aider à renforcer vos points faibles.</p>
+                        </div>
+                        <button id="btn-clear-errors" class="px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition border border-rose-200 dark:border-rose-900">
+                            Réinitialiser l'historique
+                        </button>
+                    </div>
+
+                    <div id="errors-history-list" class="space-y-3 mt-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Custom Modal for Python Input() Interception -->
+    <div id="input-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-keyboard"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Entrée utilisateur Python</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Le programme demande une saisie :</p>
+                </div>
+            </div>
+            
+            <p id="input-modal-prompt" class="p-3 bg-slate-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700"></p>
+
+            <input type="text" id="input-modal-value" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Entrez votre réponse..." />
+
+            <button id="btn-submit-input" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg transition shadow-md">
+                Valider l'entrée
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPT APPLICATION PRINCIPALE -->
+    <script>
+        /**
+         * PYACADEMY INTERACTIVE - MAIN ENGINE & EXERCISES DATABASE
+         */
+
+        // 1. DATA DATABASE: 60 EXERCISES (10 PER LEVEL)
+        const EXERCISES_DATABASE = [
+            // LEVEL 1: FONDAMENTAUX (10 exercises)
+            {
+                id: "l1_e1",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Premier Hello World",
+                type: "Programmation",
+                instructions: "Écrivez un programme Python qui affiche le texte exact `Hello, Python!` sur la console.",
+                examples: "Sortie attendue :\nHello, Python!",
+                starterCode: "# Écrivez votre code ci-dessous\n",
+                hints: ["Utilisez la fonction print().", "Pensez à mettre les guillemets autour du texte."],
+                solution: "print('Hello, Python!')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Hello, Python!\n" }
+                ]
+            },
+            {
+                id: "l1_e2",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Déclaration de Variables",
+                type: "Programmation",
+                instructions: "Créez une variable `nom` contenant la chaîne `'Alice'` et une variable `age` contenant l'entier `25`. Affichez-les séparées par un espace.",
+                examples: "Sortie attendue :\nAlice 25",
+                starterCode: "# Déclarez vos variables puis affichez-les\n",
+                hints: ["nom = 'Alice'", "print(nom, age)"],
+                solution: "nom = 'Alice'\nage = 25\nprint(nom, age)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Alice 25\n" }
+                ]
+            },
+            {
+                id: "l1_e3",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Opérations Arithmétiques",
+                type: "Logique",
+                instructions: "Calculez et affichez le résultat de l'expression : 15 multiplié par 4, puis divisé par 3.",
+                examples: "Sortie attendue :\n20.0",
+                starterCode: "# Calculez (15 * 4) / 3 et affichez le résultat\n",
+                hints: ["En Python, la multiplication est * et la division est /."],
+                solution: "print((15 * 4) / 3)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "20.0\n" }
+                ]
+            },
+            {
+                id: "l1_e4",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Saisie Utilisateur (input)",
+                type: "Programmation",
+                instructions: "Demandez le nom de l'utilisateur avec `input()`, puis affichez `Bonjour ` suivi du nom.",
+                examples: "Entrée : Marc\nSortie : Bonjour Marc",
+                starterCode: "nom = input('Votre nom : ')\n# Affichez Bonjour suivi de nom\n",
+                hints: ["Utilisez print('Bonjour', nom)"],
+                solution: "nom = input('Votre nom : ')\nprint('Bonjour', nom)",
+                tests: [
+                    { inputQueue: ["Marc"], expectedOutput: "Bonjour Marc\n" },
+                    { inputQueue: ["Sophie"], expectedOutput: "Bonjour Sophie\n" }
+                ]
+            },
+            {
+                id: "l1_e5",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Conversion de Types (int)",
+                type: "Programmation",
+                instructions: "Demandez un nombre entier à l'utilisateur, ajoutez 10 à ce nombre et affichez le résultat.",
+                examples: "Entrée : 5\nSortie : 15",
+                starterCode: "val = input('Entrez un nombre : ')\n# Convertissez val en entier et ajoutez 10\n",
+                hints: ["N'oubliez pas d'utiliser int() pour convertir la saisie."],
+                solution: "val = int(input('Entrez un nombre : '))\nprint(val + 10)",
+                tests: [
+                    { inputQueue: ["5"], expectedOutput: "15\n" },
+                    { inputQueue: ["20"], expectedOutput: "30\n" }
+                ]
+            },
+            {
+                id: "l1_e6",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Calcul de Réduction",
+                type: "Problème",
+                instructions: "Un article coûte 80 euros. Écrivez un programme qui calcule et affiche son prix après une réduction de 20%.",
+                examples: "Sortie attendue :\n64.0",
+                starterCode: "prix = 80\n# Calculez le prix réduit (prix * 0.8)\n",
+                hints: ["80 * (1 - 0.20) donne le prix réduit."],
+                solution: "prix = 80\nprint(prix * 0.8)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "64.0\n" }
+                ]
+            },
+            {
+                id: "l1_e7",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Concaténation de Chaînes",
+                type: "Compléter",
+                instructions: "Créez une chaîne complète assemblant la ville `'Paris'` et le pays `'France'` sous la forme `Paris, France`.",
+                examples: "Sortie attendue :\nParis, France",
+                starterCode: "ville = 'Paris'\npays = 'France'\n# Affichez 'Paris, France'\n",
+                hints: ["print(ville + ', ' + pays) ou print(f'{ville}, {pays}')"],
+                solution: "ville = 'Paris'\npays = 'France'\nprint(ville + ', ' + pays)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Paris, France\n" }
+                ]
+            },
+            {
+                id: "l1_e8",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Reste de la Division (Modulo)",
+                type: "Logique",
+                instructions: "Calculez et affichez le reste de la division euclidienne de 27 par 4 (opérateur `%`).",
+                examples: "Sortie attendue :\n3",
+                starterCode: "# Affichez 27 modulo 4\n",
+                hints: ["L'opérateur modulo en Python est %."],
+                solution: "print(27 % 4)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "3\n" }
+                ]
+            },
+            {
+                id: "l1_e9",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Calcul du Carré",
+                type: "Programmation",
+                instructions: "Demandez un nombre, puis affichez son carré (nombre puissance 2).",
+                examples: "Entrée : 6\nSortie : 36",
+                starterCode: "n = int(input('Nombre : '))\n# Affichez n au carré\n",
+                hints: ["En Python, la puissance se calcule avec ** (ex: n**2)."],
+                solution: "n = int(input('Nombre : '))\nprint(n ** 2)",
+                tests: [
+                    { inputQueue: ["6"], expectedOutput: "36\n" },
+                    { inputQueue: ["9"], expectedOutput: "81\n" }
+                ]
+            },
+            {
+                id: "l1_e10",
+                level: 1,
+                levelName: "Fondamentaux",
+                title: "Débogage Syntaxe de Base",
+                type: "Débogage",
+                instructions: "Le code ci-dessous contient une erreur de syntaxe ou de type. Corrigez-le pour qu'il affiche `J'ai 20 ans`.",
+                examples: "Sortie attendue :\nJ'ai 20 ans",
+                starterCode: "age = 20\nprint('J'ai ' + age + ' ans')",
+                hints: ["Vous ne pouvez pas additionner directement une chaîne str et un nombre int.", "Utilisez str(age) ou des virgules dans print()."],
+                solution: "age = 20\nprint('J\\'ai ' + str(age) + ' ans')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "J'ai 20 ans\n" }
+                ]
+            },
+
+            // LEVEL 2: LOGIQUE ET CONDITIONS (10 exercises)
+            {
+                id: "l2_e1",
+                level: 2,
+                levelName: "Logique",
+                title: "Vérification de la Majorité",
+                type: "Programmation",
+                instructions: "Demandez l'âge de l'utilisateur. Si l'âge est supérieur ou égal à 18, affichez `Majeur`, sinon affichez `Mineur`.",
+                examples: "Entrée : 18 -> Majeur\nEntrée : 15 -> Mineur",
+                starterCode: "age = int(input('Âge : '))\n# Écrivez le if/else\n",
+                hints: ["Utilisez `if age >= 18:` et `else:`."],
+                solution: "age = int(input('Âge : '))\nif age >= 18:\n    print('Majeur')\nelse:\n    print('Mineur')",
+                tests: [
+                    { inputQueue: ["18"], expectedOutput: "Majeur\n" },
+                    { inputQueue: ["12"], expectedOutput: "Mineur\n" }
+                ]
+            },
+            {
+                id: "l2_e2",
+                level: 2,
+                levelName: "Logique",
+                title: "Nombre Pair ou Impair",
+                type: "Logique",
+                instructions: "Demandez un nombre entier. Affichez `Pair` s'il est divisible par 2, sinon `Impair`.",
+                examples: "Entrée : 4 -> Pair\nEntrée : 7 -> Impair",
+                starterCode: "n = int(input('Nombre : '))\n",
+                hints: ["Un nombre est pair si `n % 2 == 0`."],
+                solution: "n = int(input('Nombre : '))\nif n % 2 == 0:\n    print('Pair')\nelse:\n    print('Impair')",
+                tests: [
+                    { inputQueue: ["4"], expectedOutput: "Pair\n" },
+                    { inputQueue: ["7"], expectedOutput: "Impair\n" }
+                ]
+            },
+            {
+                id: "l2_e3",
+                level: 2,
+                levelName: "Logique",
+                title: "Comparaison de Deux Nombres",
+                type: "Programmation",
+                instructions: "Saisissez deux nombres `a` et `b`. Affichez `A est plus grand`, `B est plus grand` ou `Égaux`.",
+                examples: "Entrées : 10, 5 -> A est plus grand",
+                starterCode: "a = int(input())\nb = int(input())\n",
+                hints: ["Utilisez `if`, `elif` et `else`."],
+                solution: "a = int(input())\nb = int(input())\nif a > b:\n    print('A est plus grand')\nelif b > a:\n    print('B est plus grand')\nelse:\n    print('Égaux')",
+                tests: [
+                    { inputQueue: ["10", "5"], expectedOutput: "A est plus grand\n" },
+                    { inputQueue: ["3", "3"], expectedOutput: "Égaux\n" }
+                ]
+            },
+            {
+                id: "l2_e4",
+                level: 2,
+                levelName: "Logique",
+                title: "Mention au Bac",
+                type: "Problème",
+                instructions: "Selon une note sur 20 :\n>= 16 : `Très bien`\n>= 14 : `Bien`\n>= 10 : `Admis`\n< 10 : `Ajourné`",
+                examples: "Entrée : 15 -> Bien",
+                starterCode: "note = float(input('Note : '))\n",
+                hints: ["Testez les conditions dans l'ordre décroissant avec elif."],
+                solution: "note = float(input('Note : '))\nif note >= 16:\n    print('Très bien')\nelif note >= 14:\n    print('Bien')\nelif note >= 10:\n    print('Admis')\nelse:\n    print('Ajourné')",
+                tests: [
+                    { inputQueue: ["15"], expectedOutput: "Bien\n" },
+                    { inputQueue: ["8"], expectedOutput: "Ajourné\n" }
+                ]
+            },
+            {
+                id: "l2_e5",
+                level: 2,
+                levelName: "Logique",
+                title: "Opérateur Logique AND",
+                type: "Programmation",
+                instructions: "Demandez la température et s'il pleut ('oui'/'non'). Affichez `Rester à la maison` si temp < 15 ET s'il pleut ('oui'), sinon `Sortir`.",
+                examples: "Entrées : 10, oui -> Rester à la maison",
+                starterCode: "temp = int(input())\npluie = input()\n",
+                hints: ["Utilisez l'opérateur `and`."],
+                solution: "temp = int(input())\npluie = input()\nif temp < 15 and pluie == 'oui':\n    print('Rester à la maison')\nelse:\n    print('Sortir')",
+                tests: [
+                    { inputQueue: ["10", "oui"], expectedOutput: "Rester à la maison\n" },
+                    { inputQueue: ["22", "non"], expectedOutput: "Sortir\n" }
+                ]
+            },
+            {
+                id: "l2_e6",
+                level: 2,
+                levelName: "Logique",
+                title: "Opérateur Logique OR",
+                type: "Programmation",
+                instructions: "Un tarif réduit s'applique si l'âge est inférieur à 12 ans OU supérieur ou égal à 65 ans. Affichez `Tarif réduit` ou `Tarif plein`.",
+                examples: "Entrée : 70 -> Tarif réduit",
+                starterCode: "age = int(input())\n",
+                hints: ["Utilisez l'opérateur `or`."],
+                solution: "age = int(input())\nif age < 12 or age >= 65:\n    print('Tarif réduit')\nelse:\n    print('Tarif plein')",
+                tests: [
+                    { inputQueue: ["70"], expectedOutput: "Tarif réduit\n" },
+                    { inputQueue: ["30"], expectedOutput: "Tarif plein\n" }
+                ]
+            },
+            {
+                id: "l2_e7",
+                level: 2,
+                levelName: "Logique",
+                title: "Validation de Mot de Passe",
+                type: "Compléter",
+                instructions: "Vérifiez si le mot de passe entré est égal à `'python123'`. Affichez `Accès autorisé` ou `Accès refusé`.",
+                examples: "Entrée : secret -> Accès refusé",
+                starterCode: "pwd = input('Mot de passe : ')\n# Complétez la condition\n",
+                hints: ["Utilisez l'opérateur d'égalité `==`."],
+                solution: "pwd = input('Mot de passe : ')\nif pwd == 'python123':\n    print('Accès autorisé')\nelse:\n    print('Accès refusé')",
+                tests: [
+                    { inputQueue: ["python123"], expectedOutput: "Accès autorisé\n" },
+                    { inputQueue: ["1234"], expectedOutput: "Accès refusé\n" }
+                ]
+            },
+            {
+                id: "l2_e8",
+                level: 2,
+                levelName: "Logique",
+                title: "Débogage d'une Condition",
+                type: "Débogage",
+                instructions: "Le code suivant ne fonctionne pas correctement car il confond l'affectation (`=`) et l'égalité (`==`). Corrigez-le.",
+                examples: "Entrée : 5 -> Égal à 5",
+                starterCode: "x = int(input())\nif x = 5:\n    print('Égal à 5')",
+                hints: ["La comparaison d'égalité utilise deux signes égal : `==`."],
+                solution: "x = int(input())\nif x == 5:\n    print('Égal à 5')",
+                tests: [
+                    { inputQueue: ["5"], expectedOutput: "Égal à 5\n" }
+                ]
+            },
+            {
+                id: "l2_e9",
+                level: 2,
+                levelName: "Logique",
+                title: "Nombre Positif, Négatif ou Nul",
+                type: "Programmation",
+                instructions: "Saisissez un nombre. Affichez `Positif`, `Négatif` ou `Zéro`.",
+                examples: "Entrée : -4 -> Négatif",
+                starterCode: "n = float(input())\n",
+                hints: ["Comparez `n > 0`, `n < 0`."],
+                solution: "n = float(input())\nif n > 0:\n    print('Positif')\nelif n < 0:\n    print('Négatif')\nelse:\n    print('Zéro')",
+                tests: [
+                    { inputQueue: ["-4"], expectedOutput: "Négatif\n" },
+                    { inputQueue: ["0"], expectedOutput: "Zéro\n" }
+                ]
+            },
+            {
+                id: "l2_e10",
+                level: 2,
+                levelName: "Logique",
+                title: "Année Bissextile (Défi)",
+                type: "Défi",
+                instructions: "Une année est bissextile si elle est divisible par 4 mais non par 100, OU divisible par 400. Affichez `Bissextile` ou `Non bissextile`.",
+                examples: "Entrée : 2024 -> Bissextile\nEntrée : 1900 -> Non bissextile",
+                starterCode: "annee = int(input())\n",
+                hints: ["`(annee % 4 == 0 and annee % 100 != 0) or (annee % 400 == 0)`"],
+                solution: "annee = int(input())\nif (annee % 4 == 0 and annee % 100 != 0) or (annee % 400 == 0):\n    print('Bissextile')\nelse:\n    print('Non bissextile')",
+                tests: [
+                    { inputQueue: ["2024"], expectedOutput: "Bissextile\n" },
+                    { inputQueue: ["1900"], expectedOutput: "Non bissextile\n" }
+                ]
+            },
+
+            // LEVEL 3: BOUCLES ET RÉPÉTITION (10 exercises)
+            {
+                id: "l3_e1",
+                level: 3,
+                levelName: "Répétition",
+                title: "Compter de 1 à 5 avec for",
+                type: "Programmation",
+                instructions: "Utilisez une boucle `for` avec `range()` pour afficher les nombres de 1 à 5 inclus, un par ligne.",
+                examples: "Sortie attendue :\n1\n2\n3\n4\n5",
+                starterCode: "# Boucle for de 1 à 5\n",
+                hints: ["`range(1, 6)` génère les entiers de 1 à 5."],
+                solution: "for i in range(1, 6):\n    print(i)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "1\n2\n3\n4\n5\n" }
+                ]
+            },
+            {
+                id: "l3_e2",
+                level: 3,
+                levelName: "Répétition",
+                title: "Table de Multiplication par 7",
+                type: "Programmation",
+                instructions: "Affichez les 5 premiers multiples de 7 (1*7, 2*7... 5*7).",
+                examples: "Sortie attendue :\n7\n14\n21\n28\n35",
+                starterCode: "for i in range(1, 6):\n    # Affichez i * 7\n",
+                hints: ["print(i * 7) dans la boucle."],
+                solution: "for i in range(1, 6):\n    print(i * 7)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "7\n14\n21\n28\n35\n" }
+                ]
+            },
+            {
+                id: "l3_e3",
+                level: 3,
+                levelName: "Répétition",
+                title: "Somme d'un Accumulateur",
+                type: "Problème",
+                instructions: "Calculez la somme des entiers de 1 à 10 inclus en utilisant une boucle et affichez le total.",
+                examples: "Sortie attendue :\n55",
+                starterCode: "somme = 0\n# Ajoutez les entiers de 1 à 10 dans somme\nprint(somme)\n",
+                hints: ["`somme += i` dans la boucle."],
+                solution: "somme = 0\nfor i in range(1, 11):\n    somme += i\nprint(somme)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "55\n" }
+                ]
+            },
+            {
+                id: "l3_e4",
+                level: 3,
+                levelName: "Répétition",
+                title: "Décompte avec Boucle while",
+                type: "Programmation",
+                instructions: "Utilisez une boucle `while` pour afficher le décompte de 3 à 1, puis affichez `Partez !`.",
+                examples: "Sortie :\n3\n2\n1\nPartez !",
+                starterCode: "c = 3\n# Écrivez la boucle while\n",
+                hints: ["Décrémentez `c -= 1` dans la boucle."],
+                solution: "c = 3\nwhile c > 0:\n    print(c)\n    c -= 1\nprint('Partez !')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "3\n2\n1\nPartez !\n" }
+                ]
+            },
+            {
+                id: "l3_e5",
+                level: 3,
+                levelName: "Répétition",
+                title: "Nombres Pairs de 0 à 10",
+                type: "Compléter",
+                instructions: "Affichez tous les nombres pairs entre 0 et 10 inclus en utilisant le pas de `range()`.",
+                examples: "Sortie :\n0\n2\n4\n6\n8\n10",
+                starterCode: "for i in range(0, 11, 2):\n    # Complétez\n",
+                hints: ["Le 3ème paramètre de `range(début, fin, pas)` définit le pas."],
+                solution: "for i in range(0, 11, 2):\n    print(i)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "0\n2\n4\n6\n8\n10\n" }
+                ]
+            },
+            {
+                id: "l3_e6",
+                level: 3,
+                levelName: "Répétition",
+                title: "Compteur de Saisies Utilisateur",
+                type: "Programmation",
+                instructions: "Demandez des mots à l'utilisateur. La boucle s'arrête dès que l'utilisateur tape `'stop'`. Affichez le nombre total de mots entrés (sans compter 'stop').",
+                examples: "Entrées : pomme, poire, stop -> 2",
+                starterCode: "compteur = 0\n# Boucle tant que mot != 'stop'\n",
+                hints: ["Utilisez `while True:` et un `break` quand `mot == 'stop'`."],
+                solution: "compteur = 0\nwhile True:\n    mot = input()\n    if mot == 'stop':\n        break\n    compteur += 1\nprint(compteur)",
+                tests: [
+                    { inputQueue: ["pomme", "poire", "stop"], expectedOutput: "2\n" }
+                ]
+            },
+            {
+                id: "l3_e7",
+                level: 3,
+                levelName: "Répétition",
+                title: "Débogage d'une Boucle Infinie",
+                type: "Débogage",
+                instructions: "Le code ci-dessous crée une boucle infinie car le compteur n'est jamais modifié. Corrigez-le.",
+                examples: "Sortie attendue :\n0\n1\n2",
+                starterCode: "i = 0\nwhile i < 3:\n    print(i)\n    # Erreur : manque l'incrémentation",
+                hints: ["Ajoutez `i += 1` à l'intérieur du bloc `while`."],
+                solution: "i = 0\nwhile i < 3:\n    print(i)\n    i += 1",
+                tests: [
+                    { inputQueue: [], expectedOutput: "0\n1\n2\n" }
+                ]
+            },
+            {
+                id: "l3_e8",
+                level: 3,
+                levelName: "Répétition",
+                title: "Calcul de la Factorielle",
+                type: "Problème",
+                instructions: "Calculez la factorielle d'un nombre $N$ (ex: 5! = 1 * 2 * 3 * 4 * 5 = 120).",
+                examples: "Entrée : 5 -> 120",
+                starterCode: "n = int(input())\nfact = 1\n# Boucle de 1 à n inclus\n",
+                hints: ["`fact *= i` dans la boucle for."],
+                solution: "n = int(input())\nfact = 1\nfor i in range(1, n + 1):\n    fact *= i\nprint(fact)",
+                tests: [
+                    { inputQueue: ["5"], expectedOutput: "120\n" },
+                    { inputQueue: ["4"], expectedOutput: "24\n" }
+                ]
+            },
+            {
+                id: "l3_e9",
+                level: 3,
+                levelName: "Répétition",
+                title: "Affichage de Motif en Étoiles",
+                type: "Programmation",
+                instructions: "Affichez un triangle d'étoiles de 4 lignes (l'indice de ligne $i$ de 1 à 4 affiche $i$ étoiles `*`).",
+                examples: "Sortie :\n*\n**\n***\n****",
+                starterCode: "for i in range(1, 5):\n    # Multipliez '*' par i\n",
+                hints: ["En Python `'*'* 3` donne `'***'`."],
+                solution: "for i in range(1, 5):\n    print('*' * i)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "*\n**\n***\n****\n" }
+                ]
+            },
+            {
+                id: "l3_e10",
+                level: 3,
+                levelName: "Répétition",
+                title: "Moyenne de Notes Saisies",
+                type: "Défi",
+                instructions: "Saisissez 3 notes float avec une boucle. Affichez la moyenne arithmétique globale.",
+                examples: "Entrées : 12, 14, 16 -> 14.0",
+                starterCode: "total = 0\n# Boucle 3 fois pour saisir et accumuler les notes\n",
+                hints: ["`total += float(input())` puis `print(total / 3)`."],
+                solution: "total = 0\nfor _ in range(3):\n    total += float(input())\nprint(total / 3)",
+                tests: [
+                    { inputQueue: ["12", "14", "16"], expectedOutput: "14.0\n" }
+                ]
+            },
+
+            // LEVEL 4: STRUCTURES DE DONNÉES (10 exercises)
+            {
+                id: "l4_e1",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Accès aux Éléments d'une Liste",
+                type: "Programmation",
+                instructions: "Considérez la liste `fruits = ['pomme', 'banane', 'cerise']`. Affichez le premier et le dernier élément.",
+                examples: "Sortie :\npomme\ncerise",
+                starterCode: "fruits = ['pomme', 'banane', 'cerise']\n# Affichez le 1er et le dernier élément\n",
+                hints: ["Le 1er indice est `0`, le dernier est `-1`."],
+                solution: "fruits = ['pomme', 'banane', 'cerise']\nprint(fruits[0])\nprint(fruits[-1])",
+                tests: [
+                    { inputQueue: [], expectedOutput: "pomme\ncerise\n" }
+                ]
+            },
+            {
+                id: "l4_e2",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Ajout et Suppression dans une Liste",
+                type: "Programmation",
+                instructions: "Soit `nombres = [10, 20]`. Ajoutez `30` à la fin avec `.append()`, puis affichez la liste complète.",
+                examples: "Sortie :\n[10, 20, 30]",
+                starterCode: "nombres = [10, 20]\n# Ajoutez 30 et affichez nombres\n",
+                hints: ["`nombres.append(30)`."],
+                solution: "nombres = [10, 20]\nnombres.append(30)\nprint(nombres)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "[10, 20, 30]\n" }
+                ]
+            },
+            {
+                id: "l4_e3",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Parcours d'une Liste",
+                type: "Programmation",
+                instructions: "Parcourez la liste `animaux = ['Chien', 'Chat', 'Oiseau']` avec une boucle `for` et affichez chaque animal en majuscules (avec `.upper()`).",
+                examples: "Sortie :\nCHIEN\nCHAT\nOISEAU",
+                starterCode: "animaux = ['Chien', 'Chat', 'Oiseau']\n",
+                hints: ["`print(a.upper())` dans la boucle for."],
+                solution: "animaux = ['Chien', 'Chat', 'Oiseau']\nfor a in animaux:\n    print(a.upper())",
+                tests: [
+                    { inputQueue: [], expectedOutput: "CHIEN\nCHAT\nOISEAU\n" }
+                ]
+            },
+            {
+                id: "l4_e4",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Manipulation de Dictionnaires",
+                type: "Programmation",
+                instructions: "Créez un dictionnaire `etudiant` avec les clés `'nom': 'Paul'` et `'note': 15`. Affichez la valeur de la clé `'note'`.",
+                examples: "Sortie :\n15",
+                starterCode: "# Créez le dictionnaire et affichez la note\n",
+                hints: ["`etudiant['note']` permet d'accéder à la valeur."],
+                solution: "etudiant = {'nom': 'Paul', 'note': 15}\nprint(etudiant['note'])",
+                tests: [
+                    { inputQueue: [], expectedOutput: "15\n" }
+                ]
+            },
+            {
+                id: "l4_e5",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Recherche dans un Dictionnaire",
+                type: "Logique",
+                instructions: "Soit `stock = {'pommes': 10, 'bananes': 5}`. Si la clé `'oranges'` est présente, affichez sa valeur, sinon affichez `Indisponible`.",
+                examples: "Sortie :\nIndisponible",
+                starterCode: "stock = {'pommes': 10, 'bananes': 5}\n# Vérifiez la présence de 'oranges'\n",
+                hints: ["Utilisez l'opérateur `in` : `if 'oranges' in stock:`."],
+                solution: "stock = {'pommes': 10, 'bananes': 5}\nif 'oranges' in stock:\n    print(stock['oranges'])\nelse:\n    print('Indisponible')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Indisponible\n" }
+                ]
+            },
+            {
+                id: "l4_e6",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Découpage de Chaîne (Slicing)",
+                type: "Programmation",
+                instructions: "Soit `mot = 'Python'`. Affichez les 3 premiers caractères en utilisant le slicing `[:3]`.",
+                examples: "Sortie :\nPyt",
+                starterCode: "mot = 'Python'\n# Affichez les 3 premiers caractères\n",
+                hints: ["`print(mot[:3])`"],
+                solution: "mot = 'Python'\nprint(mot[:3])",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Pyt\n" }
+                ]
+            },
+            {
+                id: "l4_e7",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Inversion d'une Chaîne",
+                type: "Logique",
+                instructions: "Affichez la chaîne `'bonjour'` inversée en utilisant le slicing `[::-1]`.",
+                examples: "Sortie :\nruojnob",
+                starterCode: "txt = 'bonjour'\n# Affichez la chaîne inversée\n",
+                hints: ["`txt[::-1]` inverse une séquence."],
+                solution: "txt = 'bonjour'\nprint(txt[::-1])",
+                tests: [
+                    { inputQueue: [], expectedOutput: "ruojnob\n" }
+                ]
+            },
+            {
+                id: "l4_e8",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Maximum d'une Liste",
+                type: "Problème",
+                instructions: "Soit `notes = [12, 18, 9, 15]`. Trouvez et affichez la note maximale sans utiliser la fonction `max()`.",
+                examples: "Sortie :\n18",
+                starterCode: "notes = [12, 18, 9, 15]\nmaxi = notes[0]\n# Boucle pour trouver le maximum\nprint(maxi)\n",
+                hints: ["Comparez chaque note avec `maxi`."],
+                solution: "notes = [12, 18, 9, 15]\nmaxi = notes[0]\nfor n in notes:\n    if n > maxi:\n        maxi = n\nprint(maxi)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "18\n" }
+                ]
+            },
+            {
+                id: "l4_e9",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Comptage de Mots avec split()",
+                type: "Programmation",
+                instructions: "Demandez une phrase. Découpez-la en mots avec `.split()` et affichez le nombre total de mots.",
+                examples: "Entrée : Apprendre Python est génial -> 4",
+                starterCode: "phrase = input()\n# Découpez et affichez len()\n",
+                hints: ["`mots = phrase.split()` puis `print(len(mots))`."],
+                solution: "phrase = input()\nmots = phrase.split()\nprint(len(mots))",
+                tests: [
+                    { inputQueue: ["Apprendre Python est génial"], expectedOutput: "4\n" }
+                ]
+            },
+            {
+                id: "l4_e10",
+                level: 4,
+                levelName: "Structures de données",
+                title: "Suppression des Doublons (Défi)",
+                type: "Défi",
+                instructions: "Soit `lst = [1, 2, 2, 3, 4, 4, 5]`. Créez une nouvelle liste sans doublons conservant l'ordre et affichez-la.",
+                examples: "Sortie :\n[1, 2, 3, 4, 5]",
+                starterCode: "lst = [1, 2, 2, 3, 4, 4, 5]\nunique = []\n# Remplissez unique sans doublons\nprint(unique)\n",
+                hints: ["`if elem not in unique:`."],
+                solution: "lst = [1, 2, 2, 3, 4, 4, 5]\nunique = []\nfor x in lst:\n    if x not in unique:\n        unique.append(x)\nprint(unique)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "[1, 2, 3, 4, 5]\n" }
+                ]
+            },
+
+            // LEVEL 5: FONCTIONS (10 exercises)
+            {
+                id: "l5_e1",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Première Fonction simple",
+                type: "Programmation",
+                instructions: "Définissez une fonction `saluer()` sans argument qui affiche `Bienvenue !`. Appelez cette fonction.",
+                examples: "Sortie :\nBienvenue !",
+                starterCode: "# Définissez la fonction saluer()\n",
+                hints: ["`def saluer():` puis `saluer()`."],
+                solution: "def saluer():\n    print('Bienvenue !')\nsaluer()",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Bienvenue !\n" }
+                ]
+            },
+            {
+                id: "l5_e2",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Fonction avec Paramètres",
+                type: "Programmation",
+                instructions: "Définissez une fonction `carre(x)` qui retourne le carré de $x$. Appelez-la avec $x=5$ et affichez le résultat.",
+                examples: "Sortie :\n25",
+                starterCode: "# Définissez carre(x)\n",
+                hints: ["Utilisez l'instruction `return x ** 2`."],
+                solution: "def carre(x):\n    return x ** 2\nprint(carre(5))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "25\n" }
+                ]
+            },
+            {
+                id: "l5_e3",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Fonction Addition",
+                type: "Programmation",
+                instructions: "Créez une fonction `addition(a, b)` qui retourne la somme de deux nombres. Affichez `addition(12, 8)`.",
+                examples: "Sortie :\n20",
+                starterCode: "# Définissez addition(a, b)\n",
+                hints: ["`return a + b`"],
+                solution: "def addition(a, b):\n    return a + b\nprint(addition(12, 8))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "20\n" }
+                ]
+            },
+            {
+                id: "l5_e4",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Fonction est_pair",
+                type: "Logique",
+                instructions: "Écrivez une fonction `est_pair(n)` qui retourne `True` si $n$ est pair, sinon `False`. Affichez `est_pair(4)` et `est_pair(7)`.",
+                examples: "Sortie :\nTrue\nFalse",
+                starterCode: "# Définissez est_pair(n)\n",
+                hints: ["`return n % 2 == 0`"],
+                solution: "def est_pair(n):\n    return n % 2 == 0\nprint(est_pair(4))\nprint(est_pair(7))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "True\nFalse\n" }
+                ]
+            },
+            {
+                id: "l5_e5",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Valeurs par Défaut dans Paramètres",
+                type: "Programmation",
+                instructions: "Créez une fonction `salut(nom='Inconnu')`. Si aucun paramètre n'est fourni, elle affiche `Bonjour Inconnu`. Appelez `salut()` puis `salut('Alice')`.",
+                examples: "Sortie :\nBonjour Inconnu\nBonjour Alice",
+                starterCode: "# Définissez salut(nom='Inconnu')\n",
+                hints: ["`def salut(nom='Inconnu'): print('Bonjour ' + nom)`"],
+                solution: "def salut(nom='Inconnu'):\n    print('Bonjour ' + nom)\nsalut()\nsalut('Alice')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Bonjour Inconnu\nBonjour Alice\n" }
+                ]
+            },
+            {
+                id: "l5_e6",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Moyenne d'une Liste avec Fonction",
+                type: "Problème",
+                instructions: "Écrivez une fonction `calculer_moyenne(liste_notes)` qui retourne la moyenne des éléments. Affichez la moyenne de `[10, 15, 20]`.",
+                examples: "Sortie :\n15.0",
+                starterCode: "def calculer_moyenne(liste):\n    # return sum(liste) / len(liste)\n    pass\n\nprint(calculer_moyenne([10, 15, 20]))\n",
+                hints: ["Utilisez les fonctions intégrées `sum()` et `len()`."],
+                solution: "def calculer_moyenne(liste):\n    return sum(liste) / len(liste)\nprint(calculer_moyenne([10, 15, 20]))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "15.0\n" }
+                ]
+            },
+            {
+                id: "l5_e7",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Conversion Celsius vers Fahrenheit",
+                type: "Programmation",
+                instructions: "Écrivez une fonction `celsius_vers_fahrenheit(c)` selon la formule $F = C \\times 1.8 + 32$. Testez avec 0°C.",
+                examples: "Sortie :\n32.0",
+                starterCode: "def celsius_vers_fahrenheit(c):\n    # Formule ici\n    pass\nprint(celsius_vers_fahrenheit(0))\n",
+                hints: ["`return c * 1.8 + 32`."],
+                solution: "def celsius_vers_fahrenheit(c):\n    return c * 1.8 + 32\nprint(celsius_vers_fahrenheit(0))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "32.0\n" }
+                ]
+            },
+            {
+                id: "l5_e8",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Compteur de Voyelles",
+                type: "Problème",
+                instructions: "Écrivez une fonction `compter_voyelles(texte)` qui retourne le nombre de voyelles ('a','e','i','o','u','y') dans une chaîne.",
+                examples: "compter_voyelles('python') -> 2",
+                starterCode: "def compter_voyelles(texte):\n    # Comptez les voyelles\n    pass\nprint(compter_voyelles('python'))\n",
+                hints: ["Bouclez sur chaque caractère et vérifiez `if char.lower() in 'aeiouy':`."],
+                solution: "def compter_voyelles(texte):\n    c = 0\n    for char in texte.lower():\n        if char in 'aeiouy':\n            c += 1\n    return c\nprint(compter_voyelles('python'))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "2\n" }
+                ]
+            },
+            {
+                id: "l5_e9",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Débogage Return vs Print",
+                type: "Débogage",
+                instructions: "La fonction ci-dessous effectue un `print()` au lieu de `return`, ce qui renvoie `None`. Corrigez-la pour qu'elle retourne le double du nombre.",
+                examples: "Sortie :\n20",
+                starterCode: "def double(x):\n    print(x * 2)\n\nres = double(10)\nprint(res)",
+                hints: ["Remplacez `print(x * 2)` par `return x * 2` dans la fonction."],
+                solution: "def double(x):\n    return x * 2\n\nres = double(10)\nprint(res)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "20\n" }
+                ]
+            },
+            {
+                id: "l5_e10",
+                level: 5,
+                levelName: "Fonctions",
+                title: "Filtrage de Nombre Pairs (Défi)",
+                type: "Défi",
+                instructions: "Écrivez une fonction `filtrer_pairs(liste)` qui reçoit une liste d'entiers et retourne une nouvelle liste ne contenant que les nombres pairs.",
+                examples: "filtrer_pairs([1, 2, 3, 4, 5, 6]) -> [2, 4, 6]",
+                starterCode: "def filtrer_pairs(lst):\n    # Construisez et renvoyez la liste filtrée\n    pass\nprint(filtrer_pairs([1, 2, 3, 4, 5, 6]))\n",
+                hints: ["Utilisez une liste d'accumulation ou une list comprehension."],
+                solution: "def filtrer_pairs(lst):\n    return [x for x in lst if x % 2 == 0]\nprint(filtrer_pairs([1, 2, 3, 4, 5, 6]))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "[2, 4, 6]\n" }
+                ]
+            },
+
+            // LEVEL 6: MINI-PROJETS CONCRETS (10 exercises)
+            {
+                id: "l6_e1",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Mini Calculatrice Interactive",
+                type: "Problème",
+                instructions: "Saisissez deux nombres puis un opérateur (`+`, `-`, `*`). Effectuez le calcul correspondant et affichez le résultat.",
+                examples: "Entrées : 10, 5, + -> 15.0",
+                starterCode: "a = float(input())\nb = float(input())\nop = input()\n# Effectuez le calcul selon l'opérateur\n",
+                hints: ["Testez `if op == '+': print(a + b)` etc."],
+                solution: "a = float(input())\nb = float(input())\nop = input()\nif op == '+':\n    print(a + b)\nelif op == '-':\n    print(a - b)\nelif op == '*':\n    print(a * b)",
+                tests: [
+                    { inputQueue: ["10", "5", "+"], expectedOutput: "15.0\n" },
+                    { inputQueue: ["6", "7", "*"], expectedOutput: "42.0\n" }
+                ]
+            },
+            {
+                id: "l6_e2",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Gestionnaire de Notes d'Étudiants",
+                type: "Problème",
+                instructions: "Considérez le dictionnaire `notes = {'Alice': 14, 'Bob': 8, 'Charlie': 16}`. Affichez pour chaque étudiant s'il est `Admis` (>= 10) ou `Ajourné`.",
+                examples: "Sortie :\nAlice : Admis\nBob : Ajourné\nCharlie : Admis",
+                starterCode: "notes = {'Alice': 14, 'Bob': 8, 'Charlie': 16}\n# Parcourez le dictionnaire avec .items()\n",
+                hints: ["`for nom, note in notes.items():`"],
+                solution: "notes = {'Alice': 14, 'Bob': 8, 'Charlie': 16}\nfor nom, note in notes.items():\n    statut = 'Admis' if note >= 10 else 'Ajourné'\n    print(f'{nom} : {statut}')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Alice : Admis\nBob : Ajourné\nCharlie : Admis\n" }
+                ]
+            },
+            {
+                id: "l6_e3",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Inventaire de Matériel Informatique",
+                type: "Problème",
+                instructions: "Soit un inventaire `matériel = {'PC': 5, 'Écran': 2, 'Clavier': 0}`. Affichez les éléments en rupture de stock (`quantité == 0`).",
+                examples: "Sortie :\nRupture : Clavier",
+                starterCode: "materiel = {'PC': 5, 'Écran': 2, 'Clavier': 0}\n",
+                hints: ["Vérifiez `if qte == 0:`."],
+                solution: "materiel = {'PC': 5, 'Écran': 2, 'Clavier': 0}\nfor item, qte in materiel.items():\n    if qte == 0:\n        print(f'Rupture : {item}')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "Rupture : Clavier\n" }
+                ]
+            },
+            {
+                id: "l6_e4",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Vérificateur d'Adresse IP Réseau",
+                type: "Problème",
+                instructions: "Une adresse IPv4 est valide si elle contient 4 nombres séparés par des points `.`, chacun entre 0 et 255. Écrivez une fonction `valider_ip(ip)` qui renvoie `True` ou `False`.",
+                examples: "valider_ip('192.168.1.1') -> True\nvalider_ip('300.1.1.1') -> False",
+                starterCode: "def valider_ip(ip):\n    parties = ip.split('.')\n    if len(parties) != 4:\n        return False\n    for p in parties:\n        if not p.isdigit() or not (0 <= int(p) <= 255):\n            return False\n    return True\n\nprint(valider_ip('192.168.1.1'))\nprint(valider_ip('300.1.1.1'))\n",
+                hints: ["Utilisez `ip.split('.')` et vérifiez que chaque partie est entre 0 et 255."],
+                solution: "def valider_ip(ip):\n    parties = ip.split('.')\n    if len(parties) != 4:\n        return False\n    for p in parties:\n        if not p.isdigit() or not (0 <= int(p) <= 255):\n            return False\n    return True\nprint(valider_ip('192.168.1.1'))\nprint(valider_ip('300.1.1.1'))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "True\nFalse\n" }
+                ]
+            },
+            {
+                id: "l6_e5",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Analyseur de Texte & Fréquence",
+                type: "Problème",
+                instructions: "Calculez la fréquence de chaque mot dans une liste `['python', 'java', 'python', 'c++']` et affichez le dictionnaire de résultats.",
+                examples: "Sortie :\n{'python': 2, 'java': 1, 'c++': 1}",
+                starterCode: "mots = ['python', 'java', 'python', 'c++']\nfreq = {}\n# Comptez la fréquence de chaque mot\nprint(freq)\n",
+                hints: ["`freq[m] = freq.get(m, 0) + 1`."],
+                solution: "mots = ['python', 'java', 'python', 'c++']\nfreq = {}\nfor m in mots:\n    freq[m] = freq.get(m, 0) + 1\nprint(freq)",
+                tests: [
+                    { inputQueue: [], expectedOutput: "{'python': 2, 'java': 1, 'c++': 1}\n" }
+                ]
+            },
+            {
+                id: "l6_e6",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Générateur de Nom d'Utilisateur",
+                type: "Programmation",
+                instructions: "Écrivez une fonction `creer_username(prenom, nom)` qui retourne le prénom en minuscules suivi d'un point et des 3 premières lettres du nom en minuscules.",
+                examples: "creer_username('Jean', 'Dupont') -> jean.dup",
+                starterCode: "def creer_username(prenom, nom):\n    pass\nprint(creer_username('Jean', 'Dupont'))\n",
+                hints: ["`f'{prenom.lower()}.{nom[:3].lower()}'`"],
+                solution: "def creer_username(prenom, nom):\n    return f'{prenom.lower()}.{nom[:3].lower()}'\nprint(creer_username('Jean', 'Dupont'))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "jean.dup\n" }
+                ]
+            },
+            {
+                id: "l6_e7",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Simulation Panier d'Achat TTC",
+                type: "Problème",
+                instructions: "Soit un panier d'articles avec prix HT : `[100, 50, 20]`. Appliquez une TVA de 20% sur chaque prix et affichez le montant total TTC arrondi à 2 décimales.",
+                examples: "Sortie :\n204.0",
+                starterCode: "prix_ht = [100, 50, 20]\n# Calculez le total avec 20% TVA\n",
+                hints: ["Le total TTC est égal à `sum(prix_ht) * 1.20`."],
+                solution: "prix_ht = [100, 50, 20]\ntotal_ttc = sum(prix_ht) * 1.2\nprint(round(total_ttc, 2))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "204.0\n" }
+                ]
+            },
+            {
+                id: "l6_e8",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Convertisseur de Devises",
+                type: "Programmation",
+                instructions: "Écrivez une fonction `convertir_eur_usd(montant, taux=1.10)` qui retourne la valeur en USD. Affichez `convertir_eur_usd(50)`.",
+                examples: "Sortie :\n55.0",
+                starterCode: "def convertir_eur_usd(montant, taux=1.10):\n    pass\nprint(convertir_eur_usd(50))\n",
+                hints: ["`return montant * taux`."],
+                solution: "def convertir_eur_usd(montant, taux=1.10):\n    return montant * taux\nprint(convertir_eur_usd(50))",
+                tests: [
+                    { inputQueue: [], expectedOutput: "55.0\n" }
+                ]
+            },
+            {
+                id: "l6_e9",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Vérificateur de Mot de Passe Fort",
+                type: "Problème",
+                instructions: "Un mot de passe est 'Fort' s'il contient au moins 8 caractères ET au moins un chiffre. Affichez `Fort` ou `Faible`.",
+                examples: "Entrée : secret123 -> Fort\nEntrée : secret -> Faible",
+                starterCode: "pwd = input()\n# Testez la longueur et la présence d'un chiffre\n",
+                hints: ["`any(c.isdigit() for c in pwd)` teste la présence d'un chiffre."],
+                solution: "pwd = input()\na_chiffre = any(c.isdigit() for c in pwd)\nif len(pwd) >= 8 and a_chiffre:\n    print('Fort')\nelse:\n    print('Faible')",
+                tests: [
+                    { inputQueue: ["secret123"], expectedOutput: "Fort\n" },
+                    { inputQueue: ["secret"], expectedOutput: "Faible\n" }
+                ]
+            },
+            {
+                id: "l6_e10",
+                level: 6,
+                levelName: "Mini-projets",
+                title: "Statistiques de Données Capteur (Défi)",
+                type: "Défi",
+                instructions: "Soit des relevés de température d'un capteur IoT : `releves = [21.5, 22.0, 19.8, 23.4, 21.0]`. Affichez la valeur minimale, maximale et moyenne séparées par des espaces.",
+                examples: "Sortie :\n19.8 23.4 21.54",
+                starterCode: "releves = [21.5, 22.0, 19.8, 23.4, 21.0]\n# Calculez min, max et moyenne\n",
+                hints: ["`min(releves)`, `max(releves)`, `round(sum(releves)/len(releves), 2)`."],
+                solution: "releves = [21.5, 22.0, 19.8, 23.4, 21.0]\nmini = min(releves)\nmaxi = max(releves)\nmoy = round(sum(releves) / len(releves), 2)\nprint(f'{mini} {maxi} {moy}')",
+                tests: [
+                    { inputQueue: [], expectedOutput: "19.8 23.4 21.54\n" }
+                ]
+            }
+        ];
+
+        // 2. STATE MANAGEMENT & LOCAL STORAGE
+        let appState = {
+            currentExerciseIndex: 0,
+            userProgress: {}, // { exerciseId: { completed: true, attempts: 2, userCode: "..." } }
+            errorHistory: [], // [ { timestamp, exerciseId, title, errorMsg, concept } ]
+            unlockedLevel: 1,
+            pyodideLoaded: false
+        };
+
+        let pyodideInstance = null;
+        let codeEditor = null;
+        let activeHintIndex = 0;
+
+        // Load saved state from LocalStorage
+        function loadSavedState() {
+            try {
+                const savedProgress = localStorage.getItem('pyacademy_progress');
+                if (savedProgress) appState.userProgress = JSON.parse(savedProgress);
+
+                const savedErrors = localStorage.getItem('pyacademy_errors');
+                if (savedErrors) appState.errorHistory = JSON.parse(savedErrors);
+
+                const savedTheme = localStorage.getItem('pyacademy_theme');
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                } else {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch(e) {
+                console.error("Erreur de chargement LocalStorage:", e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('pyacademy_progress', JSON.stringify(appState.userProgress));
+                localStorage.setItem('pyacademy_errors', JSON.stringify(appState.errorHistory));
+            } catch(e) {
+                console.error("Erreur de sauvegarde LocalStorage:", e);
+            }
+        }
+
+        // 3. INITIALIZE PYODIDE PYTHON ENGINE
+        async function initPyodideEngine() {
+            const statusBox = document.getElementById('pyodide-status');
+            const statusText = document.getElementById('pyodide-status-text');
+            try {
+                pyodideInstance = await loadPyodide();
+                appState.pyodideLoaded = true;
+                statusBox.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800";
+                statusText.textContent = "Moteur Python Prêt";
+                statusBox.querySelector('i').className = "fa-solid fa-circle-check";
+            } catch (err) {
+                console.error("Échec chargement Pyodide :", err);
+                statusText.textContent = "Erreur de chargement Python";
+                statusBox.className = "flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800";
+            }
+        }
+
+        // 4. UI BUILDERS & RENDERERS
+        function initCodeMirror() {
+            const editorTextarea = document.getElementById('code-editor');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            codeEditor = CodeMirror.fromTextArea(editorTextarea, {
+                mode: "python",
+                theme: isDark ? "dracula" : "neo",
+                lineNumbers: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: false,
+                lineWrapping: true,
+                autoCloseBrackets: true
+            });
+
+            codeEditor.on("change", () => {
+                // Save draft code in progress state
+                const currentEx = EXERCISES_DATABASE[appState.currentExerciseIndex];
+                if (!appState.userProgress[currentEx.id]) {
+                    appState.userProgress[currentEx.id] = { completed: false, attempts: 0 };
+                }
+                appState.userProgress[currentEx.id].userCode = codeEditor.getValue();
+            });
+        }
+
+        function renderSidebarLevels() {
+            const container = document.getElementById('sidebar-levels-container');
+            container.innerHTML = '';
+
+            const levels = [
+                { num: 1, title: "1. Fondamentaux" },
+                { num: 2, title: "2. Logique & Conditions" },
+                { num: 3, title: "3. Boucles & Répétition" },
+                { num: 4, title: "4. Structures de Données" },
+                { num: 5, title: "5. Fonctions" },
+                { num: 6, title: "6. Mini-Projets" }
+            ];
+
+            levels.forEach(lvl => {
+                const lvlExercises = EXERCISES_DATABASE.filter(e => e.level === lvl.num);
+                const completedInLvl = lvlExercises.filter(e => appState.userProgress[e.id]?.completed).length;
+                const isUnlocked = lvl.num === 1 || EXERCISES_DATABASE.filter(e => e.level === lvl.num - 1).every(e => appState.userProgress[e.id]?.completed);
+
+                const accordion = document.createElement('div');
+                accordion.className = "border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/40";
+                
+                accordion.innerHTML = `
+                    <button class="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-slate-100 dark:hover:bg-slate-700/50 transition border-b border-slate-200/50 dark:border-slate-700/50">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid ${isUnlocked ? 'fa-folder-open text-sky-500' : 'fa-lock text-slate-400'} text-xs"></i>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200">${lvl.title}</span>
+                        </div>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${completedInLvl === lvlExercises.length ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}">
+                            ${completedInLvl}/${lvlExercises.length}
+                        </span>
+                    </button>
+                    <div class="level-ex-list p-1.5 space-y-1 ${lvl.num === EXERCISES_DATABASE[appState.currentExerciseIndex].level ? '' : 'hidden'}">
+                        ${lvlExercises.map(ex => {
+                            const globalIdx = EXERCISES_DATABASE.findIndex(e => e.id === ex.id);
+                            const isDone = appState.userProgress[ex.id]?.completed;
+                            const isActive = globalIdx === appState.currentExerciseIndex;
+
+                            return `
+                                <button onclick="loadExercise(${globalIdx})" class="w-full px-2.5 py-1.5 rounded-lg text-xs text-left flex items-center justify-between transition ${isActive ? 'bg-sky-500 text-white font-semibold shadow-sm' : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+                                    <span class="truncate max-w-[170px]">${ex.title}</span>
+                                    ${isDone ? `<i class="fa-solid fa-circle-check ${isActive ? 'text-white' : 'text-emerald-500'}"></i>` : `<i class="fa-regular fa-circle text-slate-300"></i>`}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                // Accordion toggle click listener
+                accordion.querySelector('button').addEventListener('click', () => {
+                    const list = accordion.querySelector('.level-ex-list');
+                    list.classList.toggle('hidden');
+                });
+
+                container.appendChild(accordion);
+            });
+
+            updateProgressBars();
+        }
+
+        function loadExercise(index) {
+            if (index < 0 || index >= EXERCISES_DATABASE.length) return;
+            
+            appState.currentExerciseIndex = index;
+            activeHintIndex = 0;
+            const ex = EXERCISES_DATABASE[index];
+
+            // Update UI elements
+            document.getElementById('ex-level-badge').textContent = `Niveau ${ex.level} - ${ex.levelName}`;
+            document.getElementById('ex-type-badge').innerHTML = `<i class="fa-solid fa-tag mr-1"></i> ${ex.type}`;
+            document.getElementById('ex-title').textContent = ex.title;
+            document.getElementById('ex-instructions').innerHTML = ex.instructions;
+            document.getElementById('ex-examples-content').textContent = ex.examples;
+            document.getElementById('ex-nav-tracker').textContent = `${index + 1} / ${EXERCISES_DATABASE.length}`;
+
+            // Code Editor content
+            const savedUserCode = appState.userProgress[ex.id]?.userCode;
+            codeEditor.setValue(savedUserCode || ex.starterCode);
+
+            // Clear hints display and reset feedback
+            document.getElementById('hint-counter').textContent = `Indices (0/${ex.hints.length})`;
+            document.getElementById('hint-display-box').classList.add('hidden');
+            document.getElementById('hint-display-box').innerHTML = '';
+            document.getElementById('feedback-card').classList.add('hidden');
+
+            // Prev / Next button states
+            document.getElementById('btn-prev-ex').disabled = index === 0;
+            document.getElementById('btn-next-ex').disabled = index === EXERCISES_DATABASE.length - 1;
+
+            renderSidebarLevels();
+        }
+
+        function updateProgressBars() {
+            const total = EXERCISES_DATABASE.length;
+            const completedCount = Object.values(appState.userProgress).filter(p => p.completed).length;
+            const percentage = Math.round((completedCount / total) * 100);
+
+            document.getElementById('header-progress-bar').style.width = `${percentage}%`;
+            document.getElementById('header-progress-text').textContent = `${percentage}%`;
+            document.getElementById('sidebar-progress-bar').style.width = `${percentage}%`;
+            document.getElementById('sidebar-completed-count').textContent = `${completedCount} / ${total}`;
+        }
+
+        // 5. PYTHON EXECUTION & TEST ENGINE (PYODIDE INTEGRATION)
+        async function runUserCode(testInputs = [], customInputPromptHandler = null) {
+            if (!appState.pyodideLoaded) {
+                return { success: false, output: "Le moteur Python est encore en cours de chargement. Veuillez patienter..." };
+            }
+
+            const rawUserCode = codeEditor.getValue();
+            let capturedStdOut = "";
+
+            // Prepare Pyodide python environment wrapper
+            let inputQueueJS = [...testInputs];
+
+            pyodideInstance.setStdout({
+                batched: (str) => { capturedStdOut += str + "\n"; }
+            });
+
+            // Override Python input() built-in
+            window.__py_input_mock__ = function(promptText) {
+                if (inputQueueJS.length > 0) {
+                    return inputQueueJS.shift();
+                } else if (customInputPromptHandler) {
+                    return customInputPromptHandler(promptText);
+                }
+                return "";
+            };
+
+            const pyWrapperScript = `
+import sys
+import js
+
+def custom_input(prompt_text=""):
+    if prompt_text:
+        print(prompt_text, end="")
+    val = js.__py_input_mock__(str(prompt_text))
+    print(val)
+    return str(val)
+
+# Backup original input
+__builtins__.input = custom_input
+
+# Execute User Code
+${rawUserCode}
+`;
+
+            try {
+                await pyodideInstance.runPythonAsync(pyWrapperScript);
+                return { success: true, output: capturedStdOut };
+            } catch (err) {
+                return { success: false, output: capturedStdOut, error: err.message };
+            }
+        }
+
+        // Interactive Input Modal Resolver
+        function promptUserForInput(promptText) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('input-modal');
+                const promptBox = document.getElementById('input-modal-prompt');
+                const valInput = document.getElementById('input-modal-value');
+                const submitBtn = document.getElementById('btn-submit-input');
+
+                promptBox.textContent = promptText || "Saisissez une valeur :";
+                valInput.value = '';
+                modal.classList.remove('hidden');
+                valInput.focus();
+
+                const handleSubmit = () => {
+                    modal.classList.add('hidden');
+                    submitBtn.removeEventListener('click', handleSubmit);
+                    resolve(valInput.value);
+                };
+
+                submitBtn.addEventListener('click', handleSubmit);
+            });
+        }
+
+        // 6. INTELLIGENT CORRECTION & PEDAGOGICAL FEEDBACK
+        async function verifyUserSolution() {
+            const ex = EXERCISES_DATABASE[appState.currentExerciseIndex];
+            const consoleBox = document.getElementById('console-output');
+            const feedbackCard = document.getElementById('feedback-card');
+
+            if (!appState.userProgress[ex.id]) {
+                appState.userProgress[ex.id] = { completed: false, attempts: 0 };
+            }
+            appState.userProgress[ex.id].attempts += 1;
+
+            consoleBox.innerHTML = `<span class="text-sky-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Exécution des tests de vérification...</span>\n`;
+
+            let allPassed = true;
+            let firstFailureDetail = null;
+
+            for (let i = 0; i < ex.tests.length; i++) {
+                const testCase = ex.tests[i];
+                const res = await runUserCode([...testCase.inputQueue]);
+
+                if (!res.success) {
+                    allPassed = false;
+                    firstFailureDetail = {
+                        type: "RUNTIME_ERROR",
+                        errorMsg: res.error,
+                        inputs: testCase.inputQueue
+                    };
+                    break;
+                }
+
+                // Check output matching
+                const cleanOutput = res.output.trim().replace(/\r\n/g, "\n");
+                const cleanExpected = testCase.expectedOutput.trim().replace(/\r\n/g, "\n");
+
+                if (cleanOutput !== cleanExpected) {
+                    allPassed = false;
+                    firstFailureDetail = {
+                        type: "LOGIC_ERROR",
+                        actual: cleanOutput,
+                        expected: cleanExpected,
+                        inputs: testCase.inputQueue
+                    };
+                    break;
+                }
+            }
+
+            // Display Feedback Card & Terminal Results
+            feedbackCard.classList.remove('hidden');
+
+            if (allPassed) {
+                appState.userProgress[ex.id].completed = true;
+                saveState();
+                updateProgressBars();
+
+                consoleBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>BRAVO ! Tous les jeux de tests ont réussi.</span>\n`;
+
+                feedbackCard.className = "p-4 border-t border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 rounded-b-xl";
+                feedbackCard.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-circle-check text-2xl text-emerald-500 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold text-sm">Excellent travail ! Solution validée.</h4>
+                            <p class="text-xs mt-1">Vous avez maîtrisé la notion de cet exercice. Passez à la question suivante pour continuer votre progression.</p>
+                            <button onclick="loadExercise(${appState.currentExerciseIndex + 1})" class="mt-3 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow">
+                                Exercice Suivant <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                saveState();
+                
+                // Record error in History
+                appState.errorHistory.unshift({
+                    timestamp: new Date().toLocaleTimeString(),
+                    exerciseId: ex.id,
+                    title: ex.title,
+                    concept: ex.levelName,
+                    errorMsg: firstFailureDetail.errorMsg || "Résultat non conforme à l'attendu"
+                });
+
+                consoleBox.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark mr-2"></i>ÉCHEC AUX TESTS</span>\n`;
+
+                feedbackCard.className = "p-4 border-t border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 rounded-b-xl";
+                
+                let errorPedagogicalExplanation = "";
+
+                if (firstFailureDetail.type === "RUNTIME_ERROR") {
+                    const rawErr = firstFailureDetail.errorMsg;
+                    if (rawErr.includes("SyntaxError")) {
+                        errorPedagogicalExplanation = "<strong>Erreur de Syntaxe :</strong> Vérifiez vos deux-points <code>:</code> à la fin des structures (if, for, def), les parenthèses non fermées ou les fautes de frappe dans les mots-clés.";
+                    } else if (rawErr.includes("IndentationError")) {
+                        errorPedagogicalExplanation = "<strong>Erreur d'Indentation :</strong> En Python, le bloc de code sous un <code>if</code>, <code>for</code> ou <code>def</code> doit être décalé avec 4 espaces.";
+                    } else if (rawErr.includes("NameError")) {
+                        errorPedagogicalExplanation = "<strong>Variable non définie (NameError) :</strong> Vous utilisez une variable ou une fonction sans l'avoir préalablement déclarée.";
+                    } else if (rawErr.includes("TypeError")) {
+                        errorPedagogicalExplanation = "<strong>Incompatibilité de Types (TypeError) :</strong> Vous essayez de combiner des types incompatibles (ex: additionner une chaîne <code>str</code> et un nombre <code>int</code> sans conversion).";
+                    } else {
+                        errorPedagogicalExplanation = `<strong>Erreur lors de l'exécution :</strong> <br><code class="text-[11px]">${rawErr}</code>`;
+                    }
+                } else {
+                    errorPedagogicalExplanation = `
+                        <strong>Divergence de résultat :</strong><br>
+                        Entrée de test : <code>${firstFailureDetail.inputs.join(', ') || 'Aucune'}</code><br>
+                        Obtenu : <code class="text-rose-600 dark:text-rose-400">${firstFailureDetail.actual || '(vide)'}</code><br>
+                        Attendu : <code class="text-emerald-600 dark:text-emerald-400">${firstFailureDetail.expected}</code>
+                    `;
+                }
+
+                feedbackCard.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-500 mt-1"></i>
+                        <div class="space-y-1 text-xs">
+                            <h4 class="font-bold text-sm">Solution incorrecte (Tentative ${appState.userProgress[ex.id].attempts})</h4>
+                            <div>${errorPedagogicalExplanation}</div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">Conseil : Cliquez sur "Obtenir un indice" ci-dessus pour vous guider sans directement donner la solution.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 7. DASHBOARD & REVISION RENDERERS
+        function renderDashboard() {
+            const completedCount = Object.values(appState.userProgress).filter(p => p.completed).length;
+            const totalAttempts = Object.values(appState.userProgress).reduce((acc, curr) => acc + (curr.attempts || 0), 0);
+            const accuracy = totalAttempts > 0 ? Math.round((completedCount / totalAttempts) * 100) : 0;
+
+            document.getElementById('dash-stat-completed').textContent = `${completedCount} / ${EXERCISES_DATABASE.length}`;
+            document.getElementById('dash-stat-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('dash-stat-attempts').textContent = totalAttempts;
+
+            // Breakdown by Level
+            const container = document.getElementById('dash-levels-breakdown');
+            container.innerHTML = '';
+
+            for (let l = 1; l <= 6; l++) {
+                const lvlExs = EXERCISES_DATABASE.filter(e => e.level === l);
+                const lvlDone = lvlExs.filter(e => appState.userProgress[e.id]?.completed).length;
+                const pct = Math.round((lvlDone / lvlExs.length) * 100);
+
+                const card = document.createElement('div');
+                card.className = "p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-700/60 space-y-2";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700 dark:text-slate-200">Niveau ${l} : ${lvlExs[0].levelName}</span>
+                        <span class="font-semibold text-sky-600 dark:text-sky-400">${lvlDone} / ${lvlExs.length} (${pct}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div class="bg-sky-500 h-full" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        function renderErrorsHistory() {
+            const container = document.getElementById('errors-history-list');
+            container.innerHTML = '';
+
+            if (appState.errorHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 text-xs">
+                        <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2 block"></i>
+                        Aucune erreur récente enregistrée ! Continuez à pratiquer.
+                    </div>
+                `;
+                return;
+            }
+
+            appState.errorHistory.slice(0, 10).forEach(err => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs space-y-1";
+                div.innerHTML = `
+                    <div class="flex items-center justify-between font-bold text-rose-800 dark:text-rose-200">
+                        <span><i class="fa-solid fa-bug mr-1"></i> ${err.title} (${err.concept})</span>
+                        <span class="text-[10px] text-slate-400">${err.timestamp}</span>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 code-font text-[11px]">${err.errorMsg}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // 8. EVENT LISTENERS & INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedState();
+            initCodeMirror();
+            initPyodideEngine();
+            loadExercise(0);
+
+            // Theme Toggle Event
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('pyacademy_theme', isDark ? 'dark' : 'light');
+                codeEditor.setOption("theme", isDark ? "dracula" : "neo");
+            });
+
+            // Sidebar Toggle Mobile
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            
+            document.getElementById('sidebar-toggle').addEventListener('click', () => {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            });
+
+            backdrop.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            });
+
+            // Navigation View Tabs
+            const tabs = [
+                { btn: 'tab-btn-practice', view: 'view-practice', onShow: () => {} },
+                { btn: 'tab-btn-dashboard', view: 'view-dashboard', onShow: renderDashboard },
+                { btn: 'tab-btn-errors', view: 'view-errors', onShow: renderErrorsHistory }
+            ];
+
+            tabs.forEach(tab => {
+                document.getElementById(tab.btn).addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        document.getElementById(t.view).classList.add('hidden');
+                        document.getElementById(t.btn).className = "view-tab-btn text-xs font-semibold py-2 px-1 rounded-lg flex flex-col items-center gap-1 transition-all text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700";
+                    });
+                    document.getElementById(tab.view).classList.remove('hidden');
+                    document.getElementById(tab.btn).className = "view-tab-btn active text-xs font-semibold py-2 px-1 rounded-lg flex flex-col items-center gap-1 transition-all bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm";
+                    tab.onShow();
+                });
+            });
+
+            // Exercise Controls
+            document.getElementById('btn-prev-ex').addEventListener('click', () => loadExercise(appState.currentExerciseIndex - 1));
+            document.getElementById('btn-next-ex').addEventListener('click', () => loadExercise(appState.currentExerciseIndex + 1));
+
+            // Reset Code Button
+            document.getElementById('btn-reset-code').addEventListener('click', () => {
+                const ex = EXERCISES_DATABASE[appState.currentExerciseIndex];
+                codeEditor.setValue(ex.starterCode);
+            });
+
+            // Clear Console Button
+            document.getElementById('btn-clear-console').addEventListener('click', () => {
+                document.getElementById('console-output').innerHTML = `<span class="text-slate-500 italic">// Console effacée.</span>`;
+            });
+
+            // Hints Button
+            document.getElementById('btn-show-hint').addEventListener('click', () => {
+                const ex = EXERCISES_DATABASE[appState.currentExerciseIndex];
+                const hintBox = document.getElementById('hint-display-box');
+
+                if (activeHintIndex < ex.hints.length) {
+                    hintBox.classList.remove('hidden');
+                    hintBox.innerHTML += `<p class="mb-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> <strong>Indice ${activeHintIndex + 1}:</strong> ${ex.hints[activeHintIndex]}</p>`;
+                    activeHintIndex++;
+                    document.getElementById('hint-counter').textContent = `Indices (${activeHintIndex}/${ex.hints.length})`;
+                }
+            });
+
+            // Show Solution Button
+            document.getElementById('btn-show-solution').addEventListener('click', () => {
+                const ex = EXERCISES_DATABASE[appState.currentExerciseIndex];
+                const attempts = appState.userProgress[ex.id]?.attempts || 0;
+
+                if (attempts >= 2 || confirm("Afficher la correction directement ? Nous vous conseillons de chercher encore un peu !")) {
+                    codeEditor.setValue(ex.solution);
+                }
+            });
+
+            // Quick Run Code Button
+            document.getElementById('btn-run-code').addEventListener('click', async () => {
+                const consoleBox = document.getElementById('console-output');
+                consoleBox.innerHTML = `<span class="text-sky-400"><i class="fa-solid fa-play mr-2"></i>Exécution du code...</span>\n`;
+
+                const res = await runUserCode([], promptUserForInput);
+
+                if (res.success) {
+                    consoleBox.innerHTML = res.output || `<span class="text-slate-500 italic">(Le programme s'est exécuté sans afficher de sortie)</span>`;
+                } else {
+                    consoleBox.innerHTML = `<span class="text-rose-400 font-bold">Erreur d'exécution :</span>\n<span class="text-rose-300">${res.output}\n${res.error}</span>`;
+                }
+            });
+
+            // Verify Code Button
+            document.getElementById('btn-verify-code').addEventListener('click', verifyUserSolution);
+
+            // Clear Errors History
+            document.getElementById('btn-clear-errors').addEventListener('click', () => {
+                appState.errorHistory = [];
+                saveState();
+                renderErrorsHistory();
+            });
+        });
+    </script>
+</body>
+</html>
