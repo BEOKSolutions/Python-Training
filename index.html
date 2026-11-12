@@ -174,7 +174,7 @@
                         <button id="btn-prev-ex" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-40 transition">
                             <i class="fa-solid fa-chevron-left mr-1"></i> Précédent
                         </button>
-                        <span id="ex-nav-tracker" class="text-xs font-medium text-slate-500 dark:text-slate-400">1 / 10</span>
+                        <span id="ex-nav-tracker" class="text-xs font-medium text-slate-500 dark:text-slate-400">1 / 60</span>
                         <button id="btn-next-ex" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-40 transition shadow-sm">
                             Suivant <i class="fa-solid fa-chevron-right ml-1"></i>
                         </button>
@@ -263,8 +263,8 @@
                                 </button>
                             </div>
 
-                            <!-- Terminal stdout Area -->
-                            <div id="console-output" class="p-4 code-font text-xs text-slate-200 bg-slate-950 flex-1 overflow-y-auto custom-scrollbar rounded-b-xl space-y-1">
+                            <!-- Terminal stdout Area (CORRIGÉ: whitespace-pre-wrap ajouté) -->
+                            <div id="console-output" class="p-4 code-font text-xs text-slate-200 bg-slate-950 flex-1 overflow-y-auto custom-scrollbar rounded-b-xl whitespace-pre-wrap">
                                 <span class="text-slate-500 italic">// La sortie de votre programme s'affichera ici...</span>
                             </div>
 
@@ -356,16 +356,16 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm">Entrée utilisateur Python</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Le programme demande une saisie :</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Le programme attend votre saisie :</p>
                 </div>
             </div>
             
             <p id="input-modal-prompt" class="p-3 bg-slate-100 dark:bg-slate-900 rounded-lg text-xs font-mono text-slate-700 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700"></p>
 
-            <input type="text" id="input-modal-value" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Entrez votre réponse..." />
+            <input type="text" id="input-modal-value" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Entrez votre réponse puis appuyez sur Entrée..." />
 
             <button id="btn-submit-input" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg transition shadow-md">
-                Valider l'entrée
+                Valider l'entrée (Entrée)
             </button>
         </div>
     </div>
@@ -433,7 +433,7 @@
                 instructions: "Demandez le nom de l'utilisateur avec `input()`, puis affichez `Bonjour ` suivi du nom.",
                 examples: "Entrée : Marc\nSortie : Bonjour Marc",
                 starterCode: "nom = input('Votre nom : ')\n# Affichez Bonjour suivi de nom\n",
-                hints: ["Utilisez print('Bonjour', nom)"],
+                hints: ["Utilisez print('Bonjour', nom) ou print('Bonjour ' + nom)"],
                 solution: "nom = input('Votre nom : ')\nprint('Bonjour', nom)",
                 tests: [
                     { inputQueue: ["Marc"], expectedOutput: "Bonjour Marc\n" },
@@ -526,8 +526,8 @@
                 instructions: "Le code ci-dessous contient une erreur de syntaxe ou de type. Corrigez-le pour qu'il affiche `J'ai 20 ans`.",
                 examples: "Sortie attendue :\nJ'ai 20 ans",
                 starterCode: "age = 20\nprint('J'ai ' + age + ' ans')",
-                hints: ["Vous ne pouvez pas additionner directement une chaîne str et un nombre int.", "Utilisez str(age) ou des virgules dans print()."],
-                solution: "age = 20\nprint('J\\'ai ' + str(age) + ' ans')",
+                hints: ["Vous ne pouvez pas additionner directement une chaîne str et un nombre int.", "Utilisez str(age) et échappez l'apostrophe avec \\' ou utilisez des guillemets doubles \"."],
+                solution: "age = 20\nprint(\"J'ai \" + str(age) + \" ans\")",
                 tests: [
                     { inputQueue: [], expectedOutput: "J'ai 20 ans\n" }
                 ]
@@ -806,7 +806,7 @@
                 levelName: "Répétition",
                 title: "Calcul de la Factorielle",
                 type: "Problème",
-                instructions: "Calculez la factorielle d'un nombre $N$ (ex: 5! = 1 * 2 * 3 * 4 * 5 = 120).",
+                instructions: "Calculez la factorielle d'un nombre N (ex: 5! = 1 * 2 * 3 * 4 * 5 = 120).",
                 examples: "Entrée : 5 -> 120",
                 starterCode: "n = int(input())\nfact = 1\n# Boucle de 1 à n inclus\n",
                 hints: ["`fact *= i` dans la boucle for."],
@@ -822,10 +822,10 @@
                 levelName: "Répétition",
                 title: "Affichage de Motif en Étoiles",
                 type: "Programmation",
-                instructions: "Affichez un triangle d'étoiles de 4 lignes (l'indice de ligne $i$ de 1 à 4 affiche $i$ étoiles `*`).",
+                instructions: "Affichez un triangle d'étoiles de 4 lignes (l'indice de ligne i de 1 à 4 affiche i étoiles `*`).",
                 examples: "Sortie :\n*\n**\n***\n****",
                 starterCode: "for i in range(1, 5):\n    # Multipliez '*' par i\n",
-                hints: ["En Python `'*'* 3` donne `'***'`."],
+                hints: ["En Python `'*' * 3` donne `'***'`."],
                 solution: "for i in range(1, 5):\n    print('*' * i)",
                 tests: [
                     { inputQueue: [], expectedOutput: "*\n**\n***\n****\n" }
@@ -1021,7 +1021,7 @@
                 levelName: "Fonctions",
                 title: "Fonction avec Paramètres",
                 type: "Programmation",
-                instructions: "Définissez une fonction `carre(x)` qui retourne le carré de $x$. Appelez-la avec $x=5$ et affichez le résultat.",
+                instructions: "Définissez une fonction `carre(x)` qui retourne le carré de x. Appelez-la avec x=5 et affichez le résultat.",
                 examples: "Sortie :\n25",
                 starterCode: "# Définissez carre(x)\n",
                 hints: ["Utilisez l'instruction `return x ** 2`."],
@@ -1051,7 +1051,7 @@
                 levelName: "Fonctions",
                 title: "Fonction est_pair",
                 type: "Logique",
-                instructions: "Écrivez une fonction `est_pair(n)` qui retourne `True` si $n$ est pair, sinon `False`. Affichez `est_pair(4)` et `est_pair(7)`.",
+                instructions: "Écrivez une fonction `est_pair(n)` qui retourne `True` si n est pair, sinon `False`. Affichez `est_pair(4)` et `est_pair(7)`.",
                 examples: "Sortie :\nTrue\nFalse",
                 starterCode: "# Définissez est_pair(n)\n",
                 hints: ["`return n % 2 == 0`"],
@@ -1096,7 +1096,7 @@
                 levelName: "Fonctions",
                 title: "Conversion Celsius vers Fahrenheit",
                 type: "Programmation",
-                instructions: "Écrivez une fonction `celsius_vers_fahrenheit(c)` selon la formule $F = C \\times 1.8 + 32$. Testez avec 0°C.",
+                instructions: "Écrivez une fonction `celsius_vers_fahrenheit(c)` selon la formule F = C * 1.8 + 32. Testez avec 0°C.",
                 examples: "Sortie :\n32.0",
                 starterCode: "def celsius_vers_fahrenheit(c):\n    # Formule ici\n    pass\nprint(celsius_vers_fahrenheit(0))\n",
                 hints: ["`return c * 1.8 + 32`."],
@@ -1189,7 +1189,7 @@
                 levelName: "Mini-projets",
                 title: "Inventaire de Matériel Informatique",
                 type: "Problème",
-                instructions: "Soit un inventaire `matériel = {'PC': 5, 'Écran': 2, 'Clavier': 0}`. Affichez les éléments en rupture de stock (`quantité == 0`).",
+                instructions: "Soit un inventaire `materiel = {'PC': 5, 'Écran': 2, 'Clavier': 0}`. Affichez les éléments en rupture de stock (`quantité == 0`).",
                 examples: "Sortie :\nRupture : Clavier",
                 starterCode: "materiel = {'PC': 5, 'Écran': 2, 'Clavier': 0}\n",
                 hints: ["Vérifiez `if qte == 0:`."],
@@ -1206,7 +1206,7 @@
                 type: "Problème",
                 instructions: "Une adresse IPv4 est valide si elle contient 4 nombres séparés par des points `.`, chacun entre 0 et 255. Écrivez une fonction `valider_ip(ip)` qui renvoie `True` ou `False`.",
                 examples: "valider_ip('192.168.1.1') -> True\nvalider_ip('300.1.1.1') -> False",
-                starterCode: "def valider_ip(ip):\n    parties = ip.split('.')\n    if len(parties) != 4:\n        return False\n    for p in parties:\n        if not p.isdigit() or not (0 <= int(p) <= 255):\n            return False\n    return True\n\nprint(valider_ip('192.168.1.1'))\nprint(valider_ip('300.1.1.1'))\n",
+                starterCode: "def valider_ip(ip):\n    parties = ip.split('.')\n    # Complétez la vérification\n\nprint(valider_ip('192.168.1.1'))\nprint(valider_ip('300.1.1.1'))\n",
                 hints: ["Utilisez `ip.split('.')` et vérifiez que chaque partie est entre 0 et 255."],
                 solution: "def valider_ip(ip):\n    parties = ip.split('.')\n    if len(parties) != 4:\n        return False\n    for p in parties:\n        if not p.isdigit() or not (0 <= int(p) <= 255):\n            return False\n    return True\nprint(valider_ip('192.168.1.1'))\nprint(valider_ip('300.1.1.1'))",
                 tests: [
@@ -1382,12 +1382,12 @@
             });
 
             codeEditor.on("change", () => {
-                // Save draft code in progress state
                 const currentEx = EXERCISES_DATABASE[appState.currentExerciseIndex];
                 if (!appState.userProgress[currentEx.id]) {
                     appState.userProgress[currentEx.id] = { completed: false, attempts: 0 };
                 }
                 appState.userProgress[currentEx.id].userCode = codeEditor.getValue();
+                saveState();
             });
         }
 
@@ -1438,7 +1438,6 @@
                     </div>
                 `;
 
-                // Accordion toggle click listener
                 accordion.querySelector('button').addEventListener('click', () => {
                     const list = accordion.querySelector('.level-ex-list');
                     list.classList.toggle('hidden');
@@ -1467,7 +1466,7 @@
 
             // Code Editor content
             const savedUserCode = appState.userProgress[ex.id]?.userCode;
-            codeEditor.setValue(savedUserCode || ex.starterCode);
+            codeEditor.setValue(savedUserCode !== undefined ? savedUserCode : ex.starterCode);
 
             // Clear hints display and reset feedback
             document.getElementById('hint-counter').textContent = `Indices (0/${ex.hints.length})`;
@@ -1493,59 +1492,110 @@
             document.getElementById('sidebar-completed-count').textContent = `${completedCount} / ${total}`;
         }
 
-        // 5. PYTHON EXECUTION & TEST ENGINE (PYODIDE INTEGRATION)
-        async function runUserCode(testInputs = [], customInputPromptHandler = null) {
+        // 5. PYTHON EXECUTION & TEST ENGINE (CORRIGÉ AVEC SUPPORT ASYNC INPUT & ISOLATION)
+        async function runUserCode(testInputs = [], isInteractiveRun = false) {
             if (!appState.pyodideLoaded) {
                 return { success: false, output: "Le moteur Python est encore en cours de chargement. Veuillez patienter..." };
             }
 
             const rawUserCode = codeEditor.getValue();
             let capturedStdOut = "";
-
-            // Prepare Pyodide python environment wrapper
             let inputQueueJS = [...testInputs];
 
+            // Capture propre de stdout
             pyodideInstance.setStdout({
                 batched: (str) => { capturedStdOut += str + "\n"; }
             });
 
-            // Override Python input() built-in
-            window.__py_input_mock__ = function(promptText) {
+            // Fonction asynchrone JS appelée par Python lors d'un input() interactif
+            window.__py_async_input__ = async function(promptText) {
                 if (inputQueueJS.length > 0) {
-                    return inputQueueJS.shift();
-                } else if (customInputPromptHandler) {
-                    return customInputPromptHandler(promptText);
+                    return String(inputQueueJS.shift());
+                }
+                if (isInteractiveRun) {
+                    const userVal = await promptUserForInput(promptText);
+                    // En mode exécution libre ("Exécuter mon code"), on affiche le prompt et la saisie dans le terminal
+                    const consoleBox = document.getElementById('console-output');
+                    const displayLine = (promptText ? promptText : "") + userVal + "\n";
+                    capturedStdOut += displayLine;
+                    consoleBox.textContent = capturedStdOut;
+                    return String(userVal);
                 }
                 return "";
             };
 
-            const pyWrapperScript = `
-import sys
-import js
-
-def custom_input(prompt_text=""):
-    if prompt_text:
-        print(prompt_text, end="")
-    val = js.__py_input_mock__(str(prompt_text))
-    print(val)
-    return str(val)
-
-# Backup original input
-__builtins__.input = custom_input
-
-# Execute User Code
-${rawUserCode}
-`;
+            // Fonction synchrone JS utilisée pour les tests automatisés rapides
+            window.__py_sync_input__ = function(promptText) {
+                if (inputQueueJS.length > 0) {
+                    return String(inputQueueJS.shift());
+                }
+                return "";
+            };
 
             try {
-                await pyodideInstance.runPythonAsync(pyWrapperScript);
+                if (isInteractiveRun) {
+                    // Transformation AST en Python pour supporter 'await input()' de façon transparente avec la modale HTML
+                    pyodideInstance.globals.set("__raw_user_code__", rawUserCode);
+                    const asyncRunnerScript = `
+import ast
+import builtins
+import js
+
+async def __async_input_fn__(prompt_text=""):
+    val = await js.__py_async_input__(str(prompt_text))
+    return str(val)
+
+class _InputAwaitTransformer(ast.NodeTransformer):
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == "input":
+            node.func.id = "__async_input_fn__"
+            return ast.Await(value=node)
+        return node
+
+# Vérification syntaxique initiale du code de l'utilisateur
+_parsed_tree = ast.parse(__raw_user_code__, filename="<editeur.py>", mode="exec")
+_transformed_tree = _InputAwaitTransformer().visit(_parsed_tree)
+
+# Envelopper dans une coroutine async pour autoriser top-level await et isoler les variables
+_async_func_def = ast.AsyncFunctionDef(
+    name="__user_main_coroutine__",
+    args=ast.arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]),
+    body=_transformed_tree.body if _transformed_tree.body else [ast.Pass()],
+    decorator_list=[]
+)
+_module_wrapper = ast.Module(body=[_async_func_def], type_ignores=[])
+ast.fix_missing_locations(_module_wrapper)
+
+_exec_ns = {"__async_input_fn__": __async_input_fn__, "__builtins__": builtins}
+exec(compile(_module_wrapper, filename="<editeur.py>", mode="exec"), _exec_ns)
+await _exec_ns["__user_main_coroutine__"]()
+`;
+                    await pyodideInstance.runPythonAsync(asyncRunnerScript);
+                } else {
+                    // Mode vérification automatisée : exécution isolée sans polluer stdout avec le prompt d'input
+                    pyodideInstance.globals.set("__raw_user_code__", rawUserCode);
+                    const testRunnerScript = `
+import builtins
+import js
+
+def _mock_test_input(prompt_text=""):
+    return str(js.__py_sync_input__(str(prompt_text)))
+
+builtins.input = _mock_test_input
+_test_ns = {"__builtins__": builtins}
+exec(compile(__raw_user_code__, filename="<editeur.py>", mode="exec"), _test_ns)
+`;
+                    await pyodideInstance.runPythonAsync(testRunnerScript);
+                }
+
                 return { success: true, output: capturedStdOut };
             } catch (err) {
                 return { success: false, output: capturedStdOut, error: err.message };
             }
         }
 
-        // Interactive Input Modal Resolver
+        // Interactive Input Modal Resolver (Supporte le clic ET la touche Entrée)
         function promptUserForInput(promptText) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('input-modal');
@@ -1556,15 +1606,26 @@ ${rawUserCode}
                 promptBox.textContent = promptText || "Saisissez une valeur :";
                 valInput.value = '';
                 modal.classList.remove('hidden');
-                valInput.focus();
+                setTimeout(() => valInput.focus(), 50);
 
-                const handleSubmit = () => {
+                const cleanupAndResolve = () => {
+                    const value = valInput.value;
                     modal.classList.add('hidden');
                     submitBtn.removeEventListener('click', handleSubmit);
-                    resolve(valInput.value);
+                    valInput.removeEventListener('keydown', handleKeyDown);
+                    resolve(value);
+                };
+
+                const handleSubmit = () => cleanupAndResolve();
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        cleanupAndResolve();
+                    }
                 };
 
                 submitBtn.addEventListener('click', handleSubmit);
+                valInput.addEventListener('keydown', handleKeyDown);
             });
         }
 
@@ -1583,10 +1644,11 @@ ${rawUserCode}
 
             let allPassed = true;
             let firstFailureDetail = null;
+            let lastTestOutput = "";
 
             for (let i = 0; i < ex.tests.length; i++) {
                 const testCase = ex.tests[i];
-                const res = await runUserCode([...testCase.inputQueue]);
+                const res = await runUserCode([...testCase.inputQueue], false);
 
                 if (!res.success) {
                     allPassed = false;
@@ -1598,9 +1660,9 @@ ${rawUserCode}
                     break;
                 }
 
-                // Check output matching
                 const cleanOutput = res.output.trim().replace(/\r\n/g, "\n");
                 const cleanExpected = testCase.expectedOutput.trim().replace(/\r\n/g, "\n");
+                lastTestOutput = cleanOutput;
 
                 if (cleanOutput !== cleanExpected) {
                     allPassed = false;
@@ -1620,9 +1682,9 @@ ${rawUserCode}
             if (allPassed) {
                 appState.userProgress[ex.id].completed = true;
                 saveState();
-                updateProgressBars();
+                renderSidebarLevels();
 
-                consoleBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>BRAVO ! Tous les jeux de tests ont réussi.</span>\n`;
+                consoleBox.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-circle-check mr-2"></i>BRAVO ! Tous les jeux de tests ont réussi.</span>\n<span class="text-slate-300">${lastTestOutput}</span>`;
 
                 feedbackCard.className = "p-4 border-t border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 rounded-b-xl";
                 feedbackCard.innerHTML = `
@@ -1631,9 +1693,10 @@ ${rawUserCode}
                         <div>
                             <h4 class="font-bold text-sm">Excellent travail ! Solution validée.</h4>
                             <p class="text-xs mt-1">Vous avez maîtrisé la notion de cet exercice. Passez à la question suivante pour continuer votre progression.</p>
+                            ${appState.currentExerciseIndex < EXERCISES_DATABASE.length - 1 ? `
                             <button onclick="loadExercise(${appState.currentExerciseIndex + 1})" class="mt-3 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow">
                                 Exercice Suivant <i class="fa-solid fa-arrow-right ml-1"></i>
-                            </button>
+                            </button>` : ''}
                         </div>
                     </div>
                 `;
@@ -1646,7 +1709,7 @@ ${rawUserCode}
                     exerciseId: ex.id,
                     title: ex.title,
                     concept: ex.levelName,
-                    errorMsg: firstFailureDetail.errorMsg || "Résultat non conforme à l'attendu"
+                    errorMsg: firstFailureDetail.errorMsg || `Attendu: "${firstFailureDetail.expected}" | Obtenu: "${firstFailureDetail.actual || 'vide'}"`
                 });
 
                 consoleBox.innerHTML = `<span class="text-rose-400 font-bold"><i class="fa-solid fa-circle-xmark mr-2"></i>ÉCHEC AUX TESTS</span>\n`;
@@ -1658,7 +1721,7 @@ ${rawUserCode}
                 if (firstFailureDetail.type === "RUNTIME_ERROR") {
                     const rawErr = firstFailureDetail.errorMsg;
                     if (rawErr.includes("SyntaxError")) {
-                        errorPedagogicalExplanation = "<strong>Erreur de Syntaxe :</strong> Vérifiez vos deux-points <code>:</code> à la fin des structures (if, for, def), les parenthèses non fermées ou les fautes de frappe dans les mots-clés.";
+                        errorPedagogicalExplanation = "<strong>Erreur de Syntaxe :</strong> Vérifiez vos deux-points <code>:</code> à la fin des structures (if, for, def), vos guillemets ou les parenthèses non fermées.";
                     } else if (rawErr.includes("IndentationError")) {
                         errorPedagogicalExplanation = "<strong>Erreur d'Indentation :</strong> En Python, le bloc de code sous un <code>if</code>, <code>for</code> ou <code>def</code> doit être décalé avec 4 espaces.";
                     } else if (rawErr.includes("NameError")) {
@@ -1666,7 +1729,7 @@ ${rawUserCode}
                     } else if (rawErr.includes("TypeError")) {
                         errorPedagogicalExplanation = "<strong>Incompatibilité de Types (TypeError) :</strong> Vous essayez de combiner des types incompatibles (ex: additionner une chaîne <code>str</code> et un nombre <code>int</code> sans conversion).";
                     } else {
-                        errorPedagogicalExplanation = `<strong>Erreur lors de l'exécution :</strong> <br><code class="text-[11px]">${rawErr}</code>`;
+                        errorPedagogicalExplanation = `<strong>Erreur lors de l'exécution :</strong> <br><code class="text-[11px] whitespace-pre-wrap">${rawErr}</code>`;
                     }
                 } else {
                     errorPedagogicalExplanation = `
@@ -1683,7 +1746,7 @@ ${rawUserCode}
                         <div class="space-y-1 text-xs">
                             <h4 class="font-bold text-sm">Solution incorrecte (Tentative ${appState.userProgress[ex.id].attempts})</h4>
                             <div>${errorPedagogicalExplanation}</div>
-                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">Conseil : Cliquez sur "Obtenir un indice" ci-dessus pour vous guider sans directement donner la solution.</p>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2">Conseil : Cliquez sur "Obtenir un indice" à gauche pour vous guider.</p>
                         </div>
                     </div>
                 `;
@@ -1696,9 +1759,19 @@ ${rawUserCode}
             const totalAttempts = Object.values(appState.userProgress).reduce((acc, curr) => acc + (curr.attempts || 0), 0);
             const accuracy = totalAttempts > 0 ? Math.round((completedCount / totalAttempts) * 100) : 0;
 
+            // Calcul dynamique du niveau actuel atteint
+            let currentUnlockedLvl = 1;
+            for (let l = 1; l <= 6; l++) {
+                const lvlExs = EXERCISES_DATABASE.filter(e => e.level === l);
+                if (lvlExs.some(e => appState.userProgress[e.id]?.completed)) {
+                    currentUnlockedLvl = l;
+                }
+            }
+
             document.getElementById('dash-stat-completed').textContent = `${completedCount} / ${EXERCISES_DATABASE.length}`;
             document.getElementById('dash-stat-accuracy').textContent = `${accuracy}%`;
             document.getElementById('dash-stat-attempts').textContent = totalAttempts;
+            document.getElementById('dash-stat-level').textContent = `Niveau ${currentUnlockedLvl}`;
 
             // Breakdown by Level
             const container = document.getElementById('dash-levels-breakdown');
@@ -1738,7 +1811,7 @@ ${rawUserCode}
                 return;
             }
 
-            appState.errorHistory.slice(0, 10).forEach(err => {
+            appState.errorHistory.slice(0, 15).forEach(err => {
                 const div = document.createElement('div');
                 div.className = "p-3 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl text-xs space-y-1";
                 div.innerHTML = `
@@ -1746,7 +1819,7 @@ ${rawUserCode}
                         <span><i class="fa-solid fa-bug mr-1"></i> ${err.title} (${err.concept})</span>
                         <span class="text-[10px] text-slate-400">${err.timestamp}</span>
                     </div>
-                    <p class="text-slate-600 dark:text-slate-300 code-font text-[11px]">${err.errorMsg}</p>
+                    <p class="text-slate-600 dark:text-slate-300 code-font text-[11px] whitespace-pre-wrap">${err.errorMsg}</p>
                 `;
                 container.appendChild(div);
             });
@@ -1782,7 +1855,7 @@ ${rawUserCode}
 
             // Navigation View Tabs
             const tabs = [
-                { btn: 'tab-btn-practice', view: 'view-practice', onShow: () => {} },
+                { btn: 'tab-btn-practice', view: 'view-practice', onShow: () => { setTimeout(() => codeEditor.refresh(), 50); } },
                 { btn: 'tab-btn-dashboard', view: 'view-dashboard', onShow: renderDashboard },
                 { btn: 'tab-btn-errors', view: 'view-errors', onShow: renderErrorsHistory }
             ];
@@ -1807,6 +1880,11 @@ ${rawUserCode}
             document.getElementById('btn-reset-code').addEventListener('click', () => {
                 const ex = EXERCISES_DATABASE[appState.currentExerciseIndex];
                 codeEditor.setValue(ex.starterCode);
+                if (appState.userProgress[ex.id]) {
+                    appState.userProgress[ex.id].userCode = ex.starterCode;
+                    saveState();
+                }
+                document.getElementById('feedback-card').classList.add('hidden');
             });
 
             // Clear Console Button
@@ -1837,21 +1915,22 @@ ${rawUserCode}
                 }
             });
 
-            // Quick Run Code Button
+            // Quick Run Code Button (Mode Interactif avec Modale)
             document.getElementById('btn-run-code').addEventListener('click', async () => {
                 const consoleBox = document.getElementById('console-output');
+                document.getElementById('feedback-card').classList.add('hidden');
                 consoleBox.innerHTML = `<span class="text-sky-400"><i class="fa-solid fa-play mr-2"></i>Exécution du code...</span>\n`;
 
-                const res = await runUserCode([], promptUserForInput);
+                const res = await runUserCode([], true);
 
                 if (res.success) {
-                    consoleBox.innerHTML = res.output || `<span class="text-slate-500 italic">(Le programme s'est exécuté sans afficher de sortie)</span>`;
+                    consoleBox.textContent = res.output || "(Le programme s'est exécuté sans afficher de sortie)";
                 } else {
                     consoleBox.innerHTML = `<span class="text-rose-400 font-bold">Erreur d'exécution :</span>\n<span class="text-rose-300">${res.output}\n${res.error}</span>`;
                 }
             });
 
-            // Verify Code Button
+            // Verify Code Button (Mode Tests Automatisés)
             document.getElementById('btn-verify-code').addEventListener('click', verifyUserSolution);
 
             // Clear Errors History
